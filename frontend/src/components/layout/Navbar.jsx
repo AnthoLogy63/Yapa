@@ -1,6 +1,6 @@
 function Navbar() {
   return (
-    <div className="flex items-center min-h-20 justify-between px-10 bg-white shadow-md w-full mx-auto">
+    <div className="flex items-center min-h-20 justify-between px-10 bg-white shadow-md w-full mx-auto mb-5">
       
       <div className="flex items-center space-x-2">
         <div className="relative flex items-center border border-gray-400 rounded-lg overflow-hidden w-100">

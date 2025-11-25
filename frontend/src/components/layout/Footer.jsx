@@ -1,9 +1,21 @@
+import YapaLogo from '../../assets/logo.png';
+
 function Footer() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#242424] text-white">
-      <h1 className="text-5xl font-bold">Hola FOOTER</h1>
+    <div className="w-full bg-white pt-4 mt-5 flex flex-col items-center">
+      
+      <div className="w-[40vw] h-1 bg-[#F99F3F]"></div>
+
+      <div className="flex flex-col items-center justify-center p-8">
+        <img 
+          src={YapaLogo} 
+          alt="Logo Yapa" 
+          className="w-45 h-auto" 
+        />
+      </div>
+      
     </div>
-  )
+  );
 }
 
-export default Footer
+export default Footer;
