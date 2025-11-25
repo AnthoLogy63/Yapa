@@ -14,17 +14,17 @@ function Homepage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center bg-white p-8 pt-0 w-full max-w-5xl mx-auto">
+    <div className="flex flex-col items-center bg-white p-8 pt-0 w-full max-w-7xl mx-auto">
       <div className="flex flex-col items-center mb-8">
-        <img src={YapaLogo} alt="Logo Yapa" className="w-40 h-auto" />
+        <img src={YapaLogo} alt="Logo Yapa" className="w-[20vw] h-auto" />
       </div>
 
-      <div className="flex items-center space-x-4 mb-8">
+      <div className="flex items-center space-x-4 mb-4">
         <h2 className="text-3xl font-normal text-gray-800 tracking-wider">
           ¿QUÉ COCINO HOY?
         </h2>
         <button 
-          className="px-6 py-2 text-white font-semibold rounded-lg shadow-md transition duration-150 hover:brightness-110 hover:shadow-lg cursor-pointer"
+          className="px-6 py-1.5 text-white font-semibold rounded-lg shadow-md transition duration-150 hover:brightness-110 hover:shadow-lg cursor-pointer"
           style={{ backgroundColor: primaryColor }}
           onClick={handleVerRecetas}
         >
@@ -32,7 +32,7 @@ function Homepage() {
         </button>
       </div>
 
-      <div className="flex items-center space-x-4 mb-12 w-full max-w-xl">
+      <div className="flex items-center space-x-4 mb-4 w-full max-w-xl">
         <div className="relative flex items-center border border-gray-400 rounded-lg overflow-hidden flex-grow">
           <svg
             className="w-5 h-5 text-gray-500 ml-3"
@@ -51,24 +51,24 @@ function Homepage() {
           <input
             type="text"
             placeholder="Busca por nombre de la receta o ingredientes"
-            className="py-3 pl-2 pr-4 w-full focus:outline-none text-gray-700 placeholder-gray-500 bg-white"
+            className="py-1.5 pl-2 pr-4 w-full focus:outline-none text-gray-700 placeholder-gray-500 bg-white"
           />
         </div>
         <button 
-          className="px-8 py-3 text-white font-semibold rounded-lg shadow-md transition duration-150 hover:brightness-110 hover:shadow-lg cursor-pointer"
+          className="px-8 py-1.5 text-white font-semibold rounded-lg shadow-md transition duration-150 hover:brightness-110 hover:shadow-lg cursor-pointer"
           style={{ backgroundColor: primaryColor }}
-          onClick={handleVerRecetas} // opcional: buscar también lleva a /recetas
+          onClick={handleVerRecetas} 
         >
           Buscar
         </button>
       </div>
 
-      <div className="flex items-center space-x-4 mb-16">
-        <h3 className="text-xl font-normal text-gray-700 tracking-wider">
+      <div className="flex items-center space-x-4 mb-10">
+        <h3 className="text-xl font-normal tracking-wider text-red-700">
           ¿QUÉ TENGO EN MI REFRI?
         </h3>
         <button 
-          className="px-6 py-2 text-white font-semibold rounded-lg shadow-md transition duration-150 hover:brightness-110 hover:shadow-lg cursor-pointer"
+          className="px-6 py-1.5 text-white font-semibold rounded-lg shadow-md transition duration-150 hover:brightness-110 hover:shadow-lg cursor-pointer"
           style={{ backgroundColor: primaryColor }}
           onClick={handleConsultar}
         >
@@ -80,32 +80,48 @@ function Homepage() {
         <h2 className="text-2xl font-semibold mb-6 text-gray-800">
           RECOMENDACIONES DEL DÍA:
         </h2>
-        <div className="flex justify-between space-x-6">
-          <div className="flex flex-col w-1/3 shadow-lg rounded-lg overflow-hidden bg-white hover:shadow-xl transition cursor-pointer">
-            <div className="h-48 bg-gray-300"></div>
-            <div className="p-3 text-center">
-              <p className="text-lg font-bold text-gray-800">COSTILLAR DORADO</p>
-              <div className="h-2 w-3/4 mx-auto mt-2 rounded-full" style={{ backgroundColor: primaryColor }}></div>
+        <div className="flex justify-between space-x-8">
+          {/* Tarjeta 1 */}
+          <div className="flex flex-col w-100 shadow-lg rounded-lg overflow-hidden bg-white hover:shadow-xl transition cursor-pointer relative">
+            <div className="h-[13vw] relative" style={{ backgroundColor: '#ff9a2e15' }}>
+              <div
+                className="absolute bottom-[5%] left-[5%] px-2 py-1 rounded-full"
+                style={{ backgroundColor: 'rgba(249, 159, 63, 0.6)' }}
+              >
+                <p className="text-black font-bold text-sm">COSTILLAR DORADO</p>
+              </div>
             </div>
           </div>
 
-          <div className="flex flex-col w-1/3 shadow-lg rounded-lg overflow-hidden bg-white hover:shadow-xl transition cursor-pointer">
-            <div className="h-48 bg-gray-300"></div>
-            <div className="p-3 text-center">
-              <p className="text-lg font-bold text-gray-800">OCOPA PERUANA</p>
-              <div className="h-2 w-3/4 mx-auto mt-2 rounded-full" style={{ backgroundColor: primaryColor }}></div>
+          {/* Tarjeta 2 */}
+          <div className="flex flex-col w-100 shadow-lg rounded-lg overflow-hidden bg-white hover:shadow-xl transition cursor-pointer relative">
+            <div className="h-[13vw] relative" style={{ backgroundColor: '#ff9a2e15' }}>
+              <div
+                className="absolute bottom-[5%] left-[5%] px-2 py-1 rounded-full"
+                style={{ backgroundColor: 'rgba(249, 159, 63, 0.6)' }}
+              >
+                <p className="text-black font-bold text-sm">OCOPA PERUANA</p>
+              </div>
             </div>
           </div>
 
-          <div className="flex flex-col w-1/3 shadow-lg rounded-lg overflow-hidden bg-white hover:shadow-xl transition cursor-pointer">
-            <div className="h-48 bg-gray-300"></div>
-            <div className="p-3 text-center">
-              <p className="text-lg font-bold text-gray-800">AJÍ DE GALLINA</p>
-              <div className="h-2 w-3/4 mx-auto mt-2 rounded-full" style={{ backgroundColor: primaryColor }}></div>
+          {/* Tarjeta 3 */}
+          <div className="flex flex-col w-100 shadow-lg rounded-lg overflow-hidden bg-white hover:shadow-xl transition cursor-pointer relative">
+            <div className="h-[13vw] relative" style={{ backgroundColor: '#ff9a2e15' }}>
+              <div
+                className="absolute bottom-[5%] left-[5%] px-2 py-1 rounded-full"
+                style={{ backgroundColor: 'rgba(249, 159, 63, 0.6)' }}
+              >
+                <p className="text-black font-bold text-sm">AJÍ DE GALLINA</p>
+              </div>
             </div>
           </div>
         </div>
       </div>
+
+
+
+
     </div>
   );
 }
