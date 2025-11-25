@@ -1,7 +1,17 @@
+import { useNavigate } from "react-router-dom";
 import YapaLogo from '../../assets/logo.png';
 
 function Homepage() {
   const primaryColor = "#F99F3F";
+  const navigate = useNavigate();
+
+  const handleVerRecetas = () => {
+    navigate("/recetas");
+  };
+
+  const handleConsultar = () => {
+    navigate("/refri");
+  };
 
   return (
     <div className="min-h-screen flex flex-col items-center bg-white p-8 pt-0 w-full max-w-5xl mx-auto">
@@ -16,6 +26,7 @@ function Homepage() {
         <button 
           className="px-6 py-2 text-white font-semibold rounded-lg shadow-md transition duration-150 hover:brightness-110 hover:shadow-lg cursor-pointer"
           style={{ backgroundColor: primaryColor }}
+          onClick={handleVerRecetas}
         >
           Ver Recetas
         </button>
@@ -46,6 +57,7 @@ function Homepage() {
         <button 
           className="px-8 py-3 text-white font-semibold rounded-lg shadow-md transition duration-150 hover:brightness-110 hover:shadow-lg cursor-pointer"
           style={{ backgroundColor: primaryColor }}
+          onClick={handleVerRecetas} // opcional: buscar también lleva a /recetas
         >
           Buscar
         </button>
@@ -58,6 +70,7 @@ function Homepage() {
         <button 
           className="px-6 py-2 text-white font-semibold rounded-lg shadow-md transition duration-150 hover:brightness-110 hover:shadow-lg cursor-pointer"
           style={{ backgroundColor: primaryColor }}
+          onClick={handleConsultar}
         >
           Consultar
         </button>
