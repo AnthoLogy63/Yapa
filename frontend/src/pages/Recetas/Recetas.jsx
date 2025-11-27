@@ -31,7 +31,7 @@ function RecetasPage() {
   };
 
   return (
-    <div className="w-full bg-white px-20 py-7 grid grid-cols-3 gap-20">
+    <div className="w-full bg-white px-20 py-7 grid grid-cols-3 gap-8 pr-30">
 
       <div className="col-span-2 flex flex-col">
         <h2 className="text-3xl font-bold text-gray-800 mb-6 top-0 bg-white py-2 pl-2 z-10">
@@ -46,8 +46,10 @@ function RecetasPage() {
             <div
               key={item}
               onClick={() => navigate(`/recetas/${item}`)}
-              className="w-full bg-[#FFE5BA70] rounded-xl shadow p-0 flex gap-0 cursor-pointer 
-                         transition transform hover:scale-[1.01] active:scale-[0.98]"
+              className="w-full bg-[rgba(255,223,88,0.1)] border-[1px] border-[rgb(200,200,200)] rounded-xl shadow p-0 flex gap-0 cursor-pointer 
+              transition transform hover:scale-[1.01] active:scale-[0.98]"
+
+
             >
               <div className="flex-shrink-0 w-[35%] max-w-70 rounded-l-xl overflow-hidden">
                 <div className="w-full h-full bg-red-300"></div>
@@ -155,7 +157,7 @@ function RecetasPage() {
           </div>
         </div>
 
-        <div className="flex items-center gap-3 mt-2 pr-22">
+        <div className="flex items-center gap-3 mt-2 pr-[20%]">
           <span className="text-[#93630A] text-base font-medium leading-tight">
             Consulta las recetas según lo que tienes en tu refri
           </span>
