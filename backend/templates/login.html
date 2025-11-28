@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Login con Google</title>
+</head>
+<body>
+    <h1>Login con Google</h1>
+
+    {% load socialaccount %}   <!-- <- Esto es obligatorio para provider_login_url -->
+
+    <a href="{% provider_login_url 'google' %}">Iniciar sesión con Google</a>
+</body>
+</html>
