@@ -1,10 +1,54 @@
 import React from "react";
 import YapaLogo from '../../assets/logo.png';
+import { useGoogleLogin } from '@react-oauth/google';
+import { loginWithGoogle } from '../../api/authApi';
+import { useAuth } from '../../context/AuthContext';
+import axios from 'axios';
 
 function Login({ onClose }) {
+  const { login } = useAuth();
+
+  // Configuración del login de Google
+  const googleLogin = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      try {
+        // Obtener información del perfil de Google
+        const googleUserInfo = await axios.get(
+          'https://www.googleapis.com/oauth2/v3/userinfo',
+          { headers: { Authorization: `Bearer ${tokenResponse.access_token}` } }
+        );
+
+        console.log('Información de Google:', googleUserInfo.data);
+
+        // Envía el access_token al backend
+        const data = await loginWithGoogle(tokenResponse.access_token);
+        console.log('Usuario logueado en backend:', data);
+
+        // Combinar datos del backend con la info de Google
+        const userData = {
+          ...data.user,
+          name: googleUserInfo.data.name,
+          email: googleUserInfo.data.email,
+          picture: googleUserInfo.data.picture,
+        };
+
+        // Guardamos en el context
+        login(userData, data.key);
+
+        // Cerrar modal
+        if (onClose) onClose();
+      } catch (error) {
+        console.error('Error en login backend:', error);
+      }
+    },
+    onError: () => {
+      console.log('Login fallido');
+    },
+  });
+
   return (
-    <div 
-      className="fixed inset-0 flex items-center justify-center z-50" 
+    <div
+      className="fixed inset-0 flex items-center justify-center z-[9999]" // <-- sigue en el top
       style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)' }}
     >
       <div className="bg-white rounded-2xl w-full p-12 relative shadow-2xl" style={{ maxWidth: '420px' }}>
@@ -18,9 +62,9 @@ function Login({ onClose }) {
 
         {/* Logo */}
         <div className="flex justify-center mb-8">
-          <img 
-            src={YapaLogo} 
-            alt="YAPA Logo" 
+          <img
+            src={YapaLogo}
+            alt="YAPA Logo"
             className="h-32 w-auto"
           />
         </div>
@@ -31,7 +75,10 @@ function Login({ onClose }) {
         </h2>
 
         {/* Botón de Google */}
-        <button className="w-full bg-gray-800 text-white rounded-md py-3 px-5 mb-7 flex items-center justify-center gap-2 hover:bg-gray-700 transition text-base">
+        <button
+          onClick={() => googleLogin()}
+          className="w-full bg-gray-800 text-white rounded-md py-3 px-5 mb-7 flex items-center justify-center gap-2 hover:bg-gray-700 transition text-base"
+        >
           <svg className="w-5 h-5" viewBox="0 0 24 24">
             <path
               fill="currentColor"

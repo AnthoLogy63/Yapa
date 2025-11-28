@@ -1,11 +1,13 @@
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-
 from .models import Recipe
 from .serializers import RecipeSerializer
-
 import random
+from rest_framework.decorators import api_view
+from rest_framework import status
+from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
+from dj_rest_auth.registration.views import SocialLoginView
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -36,3 +38,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         recs = qs.filter(id__in=ids)
         serializer = self.get_serializer(recs, many=True)
         return Response(serializer.data)
+
+
+class GoogleLogin(SocialLoginView):
+    adapter_class = GoogleOAuth2Adapter
