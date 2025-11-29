@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import (
+from api.models import (
     Category,
     Ingredient,
     Recipe,
@@ -13,59 +13,76 @@ from .models import (
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'description')
-    search_fields = ('name',)
+    list_display = ("id", "name", "description")
+    search_fields = ("name",)
 
 
 @admin.register(Ingredient)
 class IngredientAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'classification', 'type_restriction')
-    search_fields = ('name', 'classification', 'type_restriction')
+    list_display = ("id", "name", "classification", "type_restriction")
+    search_fields = ("name", "classification", "type_restriction")
+    list_filter = ("classification", "type_restriction")
+
+
+# 🔹 INLINE: pasos de la receta
+class StepRecipeInline(admin.StackedInline):
+    model = StepRecipe
+    extra = 1  # filas vacías por defecto
+    fields = ("description", "photo", "estimated_time")
+
+
+# 🔹 INLINE: ingredientes de la receta
+class RecipeIngredientInline(admin.TabularInline):
+    model = RecipeIngredient
+    extra = 1
+    autocomplete_fields = ("ingredient",)
+    fields = ("ingredient", "amount", "unit", "order", "is_optional")
 
 
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
     list_display = (
-        'id',
-        'title',
-        'user',
-        'category',
-        'preparation_time',
-        'difficulty',
-        'portions',
-        'is_active',
+        "id",
+        "title",
+        "user",
+        "category",
+        "preparation_time",
+        "difficulty",
+        "portions",
+        "is_active",
     )
-    list_filter = ('category', 'difficulty', 'is_active')
-    search_fields = ('title', 'description')
-    autocomplete_fields = ('user', 'category')
+    list_filter = ("category", "difficulty", "is_active")
+    search_fields = ("title", "description")
+    autocomplete_fields = ("user", "category")
+    inlines = [StepRecipeInline, RecipeIngredientInline]  # ⬅️ aquí ya están definidos arriba
 
 
 @admin.register(StepRecipe)
 class StepRecipeAdmin(admin.ModelAdmin):
-    list_display = ('id', 'recipe', 'estimated_time')
-    list_filter = ('recipe',)
+    list_display = ("id", "recipe", "estimated_time")
+    list_filter = ("recipe",)
 
 
 @admin.register(RecipeIngredient)
 class RecipeIngredientAdmin(admin.ModelAdmin):
-    list_display = ('id', 'recipe', 'ingredient', 'amount', 'unit', 'order', 'is_optional')
-    list_filter = ('recipe', 'ingredient')
+    list_display = ("id", "recipe", "ingredient", "amount", "unit", "order", "is_optional")
+    list_filter = ("recipe", "ingredient")
 
 
 @admin.register(Pantry)
 class PantryAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'user', 'date_register', 'date_update')
-    list_filter = ('user',)
-    search_fields = ('name',)
+    list_display = ("id", "name", "user", "date_register", "date_update")
+    list_filter = ("user",)
+    search_fields = ("name",)
 
 
 @admin.register(PantryIngredient)
 class PantryIngredientAdmin(admin.ModelAdmin):
-    list_display = ('id', 'pantry', 'ingredient', 'amount', 'unit', 'date_aggregate', 'date_expiration')
-    list_filter = ('pantry', 'ingredient')
+    list_display = ("id", "pantry", "ingredient", "amount", "unit", "date_aggregate", "date_expiration")
+    list_filter = ("pantry", "ingredient")
 
 
 @admin.register(DietaryRestriction)
 class DietaryRestrictionAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'ingredient', 'type_restriction', 'date_register')
-    list_filter = ('type_restriction', 'user')
+    list_display = ("id", "user", "ingredient", "type_restriction", "date_register")
+    list_filter = ("type_restriction", "user")
