@@ -121,8 +121,8 @@ REST_FRAMEWORK = {
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
         'APP': {
-            'client_id': config('GOOGLE_CLIENT_ID'),
-            'secret': config('GOOGLE_SECRET_KEY'),
+            'client_id': config('GOOGLE_CLIENT_ID', default='dev-google-client-id'),
+            'client_secret': config('GOOGLE_CLIENT_SECRET', default='dev-google-client-secret'),
             'key': ''
         },
         'SCOPE': ['profile', 'email'],
