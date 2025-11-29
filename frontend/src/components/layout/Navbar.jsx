@@ -12,20 +12,27 @@ function Navbar() {
   const dropdownRef = useRef(null);
 
   const isHomepage = location.pathname === "/";
+
+  const hideSearch =
+    location.pathname.startsWith("/recetas/") ||
+    location.pathname.startsWith("/mis-recetas") ||
+    location.pathname.startsWith("/favoritos") ||
+    location.pathname.startsWith("/refri");
+
   const showBack =
     location.pathname.startsWith("/recetas/") ||
     location.pathname.startsWith("/crear-receta") ||
     location.pathname.startsWith("/editar-receta") ||
-    location.pathname.startsWith("/refri");
+    location.pathname.startsWith("/refri") ||
+    location.pathname.startsWith("/mis-recetas") ||
+    location.pathname.startsWith("/favoritos");
 
-  // Cerrar dropdown al hacer clic fuera
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setShowDropdown(false);
       }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
@@ -50,55 +57,71 @@ function Navbar() {
 
   return (
     <div className="flex items-center justify-between min-h-18 px-10 bg-white w-full mx-auto mb-3">
-
-      {/* Sección izquierda - Botón de regresar */}
-      <div className="flex items-center">
+      <div className="flex items-center space-x-3">
         {showBack && (
-          <button className="text-2xl cursor-pointer" onClick={handleBack}>←</button>
+        <button
+          onClick={handleBack}
+          className="cursor-pointer flex items-center justify-center w-10 h-10 rounded-full"
+          style={{
+            backgroundColor: "#EDEDED",
+            transition: "background-color 0.2s ease"
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#D5D5D5"}
+          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#EDEDED"}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="15 18 9 12 15 6" />
+          </svg>
+        </button>
+      )}
+
+        {!isHomepage && !hideSearch && (
+          <div className="flex items-center space-x-2">
+            <div className="relative flex items-center border border-gray-400 rounded-lg overflow-hidden w-64">
+              <svg className="w-5 h-5 text-gray-500 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <input
+                type="text"
+                placeholder="Palabra Buscada"
+                className="py-1 pl-2 pr-4 w-full focus:outline-none text-gray-700 placeholder-gray-500 bg-white"
+              />
+            </div>
+
+            <button
+              className="px-6 py-1.5 text-white font-semibold rounded-lg shadow-md hover:brightness-110 cursor-pointer"
+              style={{ backgroundColor: '#F99F3F' }}
+            >
+              Buscar
+            </button>
+          </div>
         )}
       </div>
 
-      {/* Sección central - Búsqueda */}
-      {!isHomepage ? (
-        <div className="flex items-center space-x-2">
-          <div className="relative flex items-center border border-gray-400 rounded-lg overflow-hidden w-64">
-            <svg className="w-5 h-5 text-gray-500 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            <input type="text" placeholder="Palabra Buscada" className="py-1 pl-2 pr-4 w-full focus:outline-none text-gray-700 placeholder-gray-500 bg-white" />
-          </div>
-
-          <button className="px-6 py-1.5 text-white font-semibold rounded-lg shadow-md hover:brightness-110" style={{ backgroundColor: '#F99F3F' }}>
-            Buscar
-          </button>
-        </div>
-      ) : (
-        <div></div>
-      )}
-
-      {/* Sección derecha - Botones de acción y perfil */}
       <div className="flex items-center space-x-4">
-        {/* Login o Foto de perfil primero */}
         {isLogged && user ? (
           <div className="relative" ref={dropdownRef}>
-            <button
-              onClick={() => setShowDropdown(!showDropdown)}
-              className="focus:outline-none"
-            >
+            <button onClick={() => setShowDropdown(!showDropdown)} className="focus:outline-none cursor-pointer">
               <img
-                src={user.picture || user.avatar || `https://ui-avatars.com/api/?name=${user.name || user.email}&background=F99F3F&color=fff`}
+                src={
+                  user.picture ||
+                  user.avatar ||
+                  `https://ui-avatars.com/api/?name=${user.name || user.email}&background=F99F3F&color=fff`
+                }
                 alt={user.name || "Usuario"}
                 className="w-10 h-10 rounded-full border-2 border-gray-200 cursor-pointer hover:border-orange-300 transition"
               />
             </button>
 
-            {/* Dropdown Menu */}
             {showDropdown && (
               <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-2xl py-4 px-2 z-50 border border-gray-100">
-                {/* Header con foto y nombre */}
                 <div className="flex items-center space-x-3 px-4 pb-4 border-b border-gray-200">
                   <img
-                    src={user.picture || user.avatar || `https://ui-avatars.com/api/?name=${user.name || user.email}&background=F99F3F&color=fff`}
+                    src={
+                      user.picture ||
+                      user.avatar ||
+                      `https://ui-avatars.com/api/?name=${user.name || user.email}&background=F99F3F&color=fff`
+                    }
                     alt={user.name || "Usuario"}
                     className="w-12 h-12 rounded-full"
                   />
@@ -109,11 +132,10 @@ function Navbar() {
                   </div>
                 </div>
 
-                {/* Opciones de navegación */}
                 <div className="py-2">
                   <button
                     onClick={() => handleNavigate('/mis-recetas')}
-                    className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-50 transition rounded-lg"
+                    className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-50 transition rounded-lg cursor-pointer"
                   >
                     <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -123,7 +145,7 @@ function Navbar() {
 
                   <button
                     onClick={() => handleNavigate('/favoritos')}
-                    className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-50 transition rounded-lg"
+                    className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-50 transition rounded-lg cursor-pointer"
                   >
                     <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
@@ -133,7 +155,7 @@ function Navbar() {
 
                   <button
                     onClick={() => handleNavigate('/refri')}
-                    className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-50 transition rounded-lg"
+                    className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-50 transition rounded-lg cursor-pointer"
                   >
                     <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
@@ -142,13 +164,11 @@ function Navbar() {
                   </button>
                 </div>
 
-                {/* Separador */}
                 <div className="border-t border-gray-200 my-2"></div>
 
-                {/* Botón de salir */}
                 <button
                   onClick={handleLogout}
-                  className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-red-50 transition rounded-lg"
+                  className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-red-50 transition rounded-lg cursor-pointer"
                 >
                   <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -170,7 +190,6 @@ function Navbar() {
           </button>
         )}
 
-        {/* Botón Crear Receta después */}
         <button
           className="flex items-center px-4 py-1.5 text-white font-semibold rounded-lg shadow-md hover:brightness-110 cursor-pointer"
           style={{ backgroundColor: '#F99F3F' }}
@@ -181,7 +200,6 @@ function Navbar() {
         </button>
       </div>
 
-      {/* Modal Login */}
       {showLogin && <Login onClose={() => setShowLogin(false)} />}
     </div>
   );
