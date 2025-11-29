@@ -30,7 +30,13 @@ class Recipe(models.Model):
     date_register = models.DateTimeField(auto_now_add=True)
     date_update = models.DateTimeField(auto_now=True)
     is_active = models.BooleanField(default=True)
-
+    image = models.ImageField(   # <--- NUEVO
+        upload_to="recipes/",
+        null=True,
+        blank=True,
+        help_text="Imagen principal de la receta"
+    )
+    
     def __str__(self):
         return self.title
 

@@ -3,9 +3,9 @@ from django.urls import path, include
 from django.http import HttpResponse
 from api.views import GoogleLogin
 from rest_framework.routers import DefaultRouter
-
-# TEMPORAL
 from api.views import RecipeViewSet  # <-- agregamos RecipeViewSet
+from django.conf import settings
+from django.conf.urls.static import static
 
 def home(request):
     return HttpResponse("<h1>Backend funcionando</h1>")
@@ -22,5 +22,7 @@ urlpatterns = [
     path("dj-rest-auth/registration/", include("dj_rest_auth.registration.urls")), 
     path('accounts/', include('allauth.urls')),  # URLs de allauth (login/logout)
     path('api/auth/google/', GoogleLogin.as_view(), name='google_login'),
-    
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

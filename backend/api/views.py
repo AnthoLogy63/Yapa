@@ -11,12 +11,14 @@ from dj_rest_auth.registration.views import SocialLoginView
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
-    """
-    CRUD de recetas + endpoint de recomendaciones.
-    """
     queryset = Recipe.objects.filter(is_active=True)
     serializer_class = RecipeSerializer
 
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context["request"] = self.request
+        return context
+    
     @action(detail=False, methods=['get'], url_path='recommendations')
     def recommendations(self, request):
         """

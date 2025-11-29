@@ -1,14 +1,39 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 function RecetasPage() {
   const navigate = useNavigate();
 
+  // filtros "con" / "sin" ingredientes
   const [ingCon, setIngCon] = useState("");
   const [listCon, setListCon] = useState([]);
 
   const [ingSin, setIngSin] = useState("");
   const [listSin, setListSin] = useState([]);
+
+  // recetas desde el backend
+  const [recipes, setRecipes] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // cargar recetas al montar el componente
+  useEffect(() => {
+    const fetchRecipes = async () => {
+      try {
+        const res = await fetch("http://127.0.0.1:8000/api/recipes/");
+        if (!res.ok) {
+          throw new Error(`Error HTTP ${res.status}`);
+        }
+        const data = await res.json();
+        setRecipes(data);
+      } catch (error) {
+        console.error("Error cargando recetas:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRecipes();
+  }, []);
 
   const agregarCon = () => {
     if (ingCon.trim() === "") return;
@@ -32,46 +57,70 @@ function RecetasPage() {
 
   return (
     <div className="w-full bg-white px-20 py-7 grid grid-cols-3 gap-8 pr-30">
-
+      {/* LISTADO DE RECETAS */}
       <div className="col-span-2 flex flex-col">
         <h2 className="text-3xl font-bold text-gray-800 mb-6 top-0 bg-white py-2 pl-2 z-10">
           Palabra Buscada
         </h2>
 
         <div
-          className="space-y-6 overflow-y-auto pr-4 pt-1 pl-2 mr-8 "
+          className="space-y-6 overflow-y-auto pr-4 pt-1 pl-2 mr-8"
           style={{ maxHeight: "70vh" }}
         >
-          {[1, 2, 3, 4, 5, 6, 7].map((item) => (
-            <div
-              key={item}
-              onClick={() => navigate(`/recetas/${item}`)}
-              className="w-full bg-[rgba(255,223,88,0.1)] border-[1px] border-[rgb(200,200,200)] rounded-xl shadow p-0 flex gap-0 cursor-pointer 
-              transition transform hover:scale-[1.01] active:scale-[0.98]"
+          {loading && (
+            <p className="text-gray-500 pl-2">Cargando recetas...</p>
+          )}
 
+          {!loading && recipes.length === 0 && (
+            <p className="text-gray-500 pl-2">
+              No hay recetas registradas.
+            </p>
+          )}
 
-            >
-              <div className="flex-shrink-0 w-[35%] max-w-70 rounded-l-xl overflow-hidden">
-                <div className="w-full h-full bg-red-300"></div>
-              </div>
+          {!loading &&
+            recipes.map((recipe) => (
+              <div
+                key={recipe.id}
+                onClick={() => navigate(`/recetas/${recipe.id}`)}
+                className="w-full bg-[rgba(255,223,88,0.1)] border-[1px] border-[rgb(200,200,200)] rounded-xl shadow p-0 flex gap-0 cursor-pointer 
+                transition transform hover:scale-[1.01] active:scale-[0.98]"
+              >
+                {/* zona de imagen */}
+                <div className="flex-shrink-0 w-[35%] max-w-70 h-40 md:h-48 lg:h-56 rounded-l-xl overflow-hidden bg-red-300">
+                  {recipe.image && (
+                    <img
+                      src={recipe.image}
+                      alt={recipe.title || "Receta"}
+                      className="w-full h-full object-cover object-center"
+                    />
+                  )}
+                </div>
 
-              <div className="flex flex-col p-4">
-                <h3 className="font-bold text-lg">COSTILLAR DORADO</h3>
+                {/* info de la receta */}
+                <div className="flex flex-col p-4 flex-1">
+                  <h3 className="font-bold text-lg">
+                    {recipe.title
+                      ? recipe.title.toUpperCase()
+                      : "SIN TÍTULO"}
+                  </h3>
 
-                <p className="text-gray-700 text-base mt-1 leading-snug min-h-22">
-                  Un jugoso costillar dorado al horno con especias seleccionadas,
-                  acompañado de papas rústicas y un toque de hierbas frescas.
-                  Ideal para una cena especial, con un aroma que llena toda la casa
-                  y una textura suave por dentro pero crocante por fuera.
-                </p>
+                  {recipe.description && (
+                    <p className="text-gray-700 text-base mt-1 leading-snug min-h-22">
+                      {recipe.description}
+                    </p>
+                  )}
 
-                <div className="flex items-center gap-6 mt-3 text-lg text-gray-700">
-                  <span>⏱ 30 minutos</span>
-                  <span>👤 2 porciones</span>
+                  <div className="flex items-center gap-6 mt-3 text-lg text-gray-700">
+                    {typeof recipe.preparation_time !== "undefined" && (
+                      <span>⏱ {recipe.preparation_time} minutos</span>
+                    )}
+                    {typeof recipe.portions !== "undefined" && (
+                      <span>👤 {recipe.portions} porciones</span>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
         </div>
       </div>
 
@@ -90,7 +139,6 @@ function RecetasPage() {
               onChange={(e) => setIngCon(e.target.value)}
               placeholder="Introduce Ingredientes"
               className="border border-gray-1000 rounded-md px-3 py-2 w-full text-gray-700/70"
-
             />
 
             <button
@@ -103,7 +151,10 @@ function RecetasPage() {
 
           <div className="flex flex-wrap gap-2 mt-3">
             {listCon.map((item, i) => (
-              <div key={i} className="flex items-center gap-2 bg-gray-200 px-3 py-1 rounded-full text-sm">
+              <div
+                key={i}
+                className="flex items-center gap-2 bg-gray-200 px-3 py-1 rounded-full text-sm"
+              >
                 <span className="text-sm">{item}</span>
 
                 <button
@@ -128,10 +179,8 @@ function RecetasPage() {
               onChange={(e) => setIngSin(e.target.value)}
               placeholder="Introduce Ingredientes"
               className="border border-gray-1000 rounded-md px-3 py-2 w-full text-gray-700/70"
-
             />
 
-            {/* BOTÓN NEGRO COMO ANTES */}
             <button
               onClick={agregarSin}
               className="px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800 cursor-pointer"
@@ -142,10 +191,12 @@ function RecetasPage() {
 
           <div className="flex flex-wrap gap-2 mt-3">
             {listSin.map((item, i) => (
-              <div key={i} className="flex items-center gap-2 bg-gray-200 px-3 py-1 rounded-full text-sm">
+              <div
+                key={i}
+                className="flex items-center gap-2 bg-gray-200 px-3 py-1 rounded-full text-sm"
+              >
                 <span className="text-sm">{item}</span>
 
-                {/* ICONO ✕ */}
                 <button
                   onClick={() => eliminarSin(item)}
                   className="text-black text-base leading-none cursor-pointer"
@@ -169,7 +220,6 @@ function RecetasPage() {
           </button>
         </div>
       </div>
-
     </div>
   );
 }
