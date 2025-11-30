@@ -17,8 +17,9 @@ function Navbar() {
     location.pathname.startsWith("/recetas/") ||
     location.pathname.startsWith("/mis-recetas") ||
     location.pathname.startsWith("/favoritos") ||
-    location.pathname.startsWith("/refri");
-
+    location.pathname.startsWith("/refri") ||
+    location.pathname.startsWith("/crear-receta");
+    
   const showBack =
     location.pathname.startsWith("/recetas/") ||
     location.pathname.startsWith("/crear-receta") ||
@@ -75,7 +76,7 @@ function Navbar() {
         </button>
       )}
 
-        {!isHomepage && !hideSearch && (
+        {!isHomepage && !hideSearch &&  (
           <div className="flex items-center space-x-2">
             <div className="relative flex items-center border border-gray-400 rounded-lg overflow-hidden w-64">
               <svg className="w-5 h-5 text-gray-500 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -190,14 +191,16 @@ function Navbar() {
           </button>
         )}
 
-        <button
-          className="flex items-center px-4 py-1.5 text-white font-semibold rounded-lg shadow-md hover:brightness-110 cursor-pointer"
-          style={{ backgroundColor: '#F99F3F' }}
-          onClick={handleCrear}
-        >
-          <span className="text-xl mr-1">+</span>
-          Crear una Receta
-        </button>
+        {location.pathname !== "/crear-receta" && (
+          <button
+            className="flex items-center px-4 py-1.5 text-white font-semibold rounded-lg shadow-md hover:brightness-110 cursor-pointer"
+            style={{ backgroundColor: '#F99F3F' }}
+            onClick={handleCrear}
+          >
+            <span className="text-xl mr-1">+</span>
+            Crear una Receta
+          </button>
+        )}
       </div>
 
       {showLogin && <Login onClose={() => setShowLogin(false)} />}
