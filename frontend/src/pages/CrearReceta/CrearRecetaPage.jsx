@@ -1,6 +1,7 @@
 import React from 'react';
 import { Trash2, ChevronUp, ChevronDown, Plus } from 'lucide-react';
 import { useAuth } from "../../context/AuthContext";
+import ConfirmacionSalida from '../../components/modals/ConfirmacionSalida';
 
 const InputField = ({ placeholder, value, onChange, width = 'full', type = 'text', className = '' }) => (
   <input
@@ -19,6 +20,11 @@ const InputField = ({ placeholder, value, onChange, width = 'full', type = 'text
 function CrearRecetaPage() {
   const { user, isLogged } = useAuth();
 
+  // -------- MODAL DE CONFIRMACIÓN --------
+  const [showExitModal, setShowExitModal] = React.useState(false);
+  const [hasChanges, setHasChanges] = React.useState(false);
+  const [pendingNavigation, setPendingNavigation] = React.useState(null);
+
   // -------- IMAGE UPLOAD STATE --------
   const [previewImage, setPreviewImage] = React.useState(null);
 
@@ -27,6 +33,7 @@ function CrearRecetaPage() {
     if (!file) return;
     const url = URL.createObjectURL(file);
     setPreviewImage(url);
+    markAsChanged();
   };
 
   // ID counter
@@ -100,6 +107,57 @@ function CrearRecetaPage() {
     });
   };
 
+  // -------- DETECCI\u00d3N DE CAMBIOS --------
+  const markAsChanged = () => setHasChanges(true);
+
+  // -------- REGISTRAR FUNCI\u00d3N GLOBAL PARA NAVBAR --------
+  React.useEffect(() => {
+    // Funci\u00f3n que el Navbar puede llamar antes de navegar
+    window.checkUnsavedChanges = (navigateFn) => {
+      if (hasChanges) {
+        // Guardar la funci\u00f3n de navegaci\u00f3n pendiente
+        setPendingNavigation(() => navigateFn);
+        setShowExitModal(true);
+        return false; // Indica que hay cambios no guardados
+      }
+      return true; // No hay cambios, puede navegar
+    };
+
+    // Limpiar al desmontar
+    return () => {
+      delete window.checkUnsavedChanges;
+    };
+  }, [hasChanges]);
+
+  // Advertencia al cerrar pesta\u00f1a
+  React.useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (hasChanges) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [hasChanges]);
+
+  // Manejar confirmaci\u00f3n de salida
+  const handleConfirmExit = () => {
+    setHasChanges(false);
+    setShowExitModal(false);
+    if (pendingNavigation) {
+      pendingNavigation();
+      setPendingNavigation(null);
+    }
+  };
+
+  // Manejar cancelaci\u00f3n
+  const handleCancelExit = () => {
+    setShowExitModal(false);
+    setPendingNavigation(null);
+  };
+
   const userAvatar =
     user?.picture ||
     user?.avatar ||
@@ -148,7 +206,7 @@ function CrearRecetaPage() {
             <InputField
               placeholder="Título"
               value={titulo}
-              onChange={(e) => setTitulo(e.target.value)}
+              onChange={(e) => { setTitulo(e.target.value); markAsChanged(); }}
               className="text-2xl font-bold"
             />
 
@@ -298,6 +356,14 @@ function CrearRecetaPage() {
         </div>
 
       </div>
+
+      {/* Modal de confirmaci\u00f3n de salida */}
+      {showExitModal && (
+        <ConfirmacionSalida
+          onClose={handleCancelExit}
+          onConfirm={handleConfirmExit}
+        />
+      )}
     </div>
   );
 }

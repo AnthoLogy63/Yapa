@@ -19,7 +19,7 @@ function Navbar() {
     location.pathname.startsWith("/favoritos") ||
     location.pathname.startsWith("/refri") ||
     location.pathname.startsWith("/crear-receta");
-    
+
   const showBack =
     location.pathname.startsWith("/recetas/") ||
     location.pathname.startsWith("/crear-receta") ||
@@ -44,15 +44,39 @@ function Navbar() {
   };
 
   const handleLogin = () => setShowLogin(true);
-  const handleBack = () => navigate(-1);
+
+  const handleBack = () => {
+    // Verificar si hay cambios no guardados
+    if (window.checkUnsavedChanges) {
+      const canNavigate = window.checkUnsavedChanges(() => navigate('/recetas'));
+      if (canNavigate) {
+        navigate('/recetas');
+      }
+    } else {
+      navigate('/recetas');
+    }
+  };
 
   const handleLogout = () => {
     logout();
     setShowDropdown(false);
+
+    // Si está en crear-receta, redirigir al homepage
+    if (location.pathname.startsWith('/crear-receta') || location.pathname.startsWith('/editar-receta')) {
+      navigate('/');
+    }
   };
 
   const handleNavigate = (path) => {
-    navigate(path);
+    // Verificar si hay cambios no guardados
+    if (window.checkUnsavedChanges) {
+      const canNavigate = window.checkUnsavedChanges(() => navigate(path));
+      if (canNavigate) {
+        navigate(path);
+      }
+    } else {
+      navigate(path);
+    }
     setShowDropdown(false);
   };
 
@@ -60,23 +84,23 @@ function Navbar() {
     <div className="flex items-center justify-between min-h-18 px-10 bg-white w-full mx-auto mb-3">
       <div className="flex items-center space-x-3">
         {showBack && (
-        <button
-          onClick={handleBack}
-          className="cursor-pointer flex items-center justify-center w-10 h-10 rounded-full"
-          style={{
-            backgroundColor: "#EDEDED",
-            transition: "background-color 0.2s ease"
-          }}
-          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#D5D5D5"}
-          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#EDEDED"}
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="15 18 9 12 15 6" />
-          </svg>
-        </button>
-      )}
+          <button
+            onClick={handleBack}
+            className="cursor-pointer flex items-center justify-center w-10 h-10 rounded-full"
+            style={{
+              backgroundColor: "#EDEDED",
+              transition: "background-color 0.2s ease"
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#D5D5D5"}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#EDEDED"}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
+          </button>
+        )}
 
-        {!isHomepage && !hideSearch &&  (
+        {!isHomepage && !hideSearch && (
           <div className="flex items-center space-x-2">
             <div className="relative flex items-center border border-gray-400 rounded-lg overflow-hidden w-64">
               <svg className="w-5 h-5 text-gray-500 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
