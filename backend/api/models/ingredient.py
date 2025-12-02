@@ -17,8 +17,8 @@ class Ingredient(models.Model):
 
     class Meta:
         db_table = 'ingredient'
-        verbose_name = 'Ingredient'
-        verbose_name_plural = 'Ingredients'
+        verbose_name = 'Ingrediente'
+        verbose_name_plural = 'Ingredientes'
         ordering = ['name']
 
     def __str__(self):

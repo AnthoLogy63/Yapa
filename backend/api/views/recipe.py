@@ -121,6 +121,34 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     @extend_schema(
         tags=['Recetas'],
+        summary='Obtener recomendaciones del día',
+        description='Devuelve 3 recetas aleatorias activas para la sección de recomendaciones del día en la página principal.',
+        responses={200: RecipeSerializer(many=True)}
+    )
+    @action(detail=False, methods=['get'], url_path='recomendaciones-del-dia')
+    def recomendaciones_del_dia(self, request):
+        """
+        GET /api/recipes/recomendaciones-del-dia/
+        Devuelve hasta 3 recetas aleatorias activas para recomendaciones del día.
+        """
+        qs = self.get_queryset()
+        count = qs.count()
+
+        if count == 0:
+            return Response([])
+
+        # Número de recetas a devolver (máx 3, pero si hay menos, devuelve las que haya)
+        n = min(3, count)
+
+        # Tomamos n IDs aleatorios
+        ids = random.sample(list(qs.values_list('id', flat=True)), n)
+
+        recs = qs.filter(id__in=ids)
+        serializer = self.get_serializer(recs, many=True)
+        return Response(serializer.data)
+
+    @extend_schema(
+        tags=['Recetas'],
         summary='Obtener mis recetas',
         description='Devuelve todas las recetas creadas por el usuario autenticado.',
         responses={200: RecipeSerializer(many=True)}

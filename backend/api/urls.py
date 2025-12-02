@@ -7,6 +7,8 @@ from api.views import (
     PantryIngredientViewSet,
     UserProfileViewSet,
     CurrentUserView,
+    CategoryViewSet,
+    IngredientViewSet,
 )
 
 # Router para ViewSets
@@ -16,6 +18,8 @@ router.register(r'favorites', FavoriteRecipeViewSet, basename='favorite')
 router.register(r'pantry', PantryViewSet, basename='pantry')
 router.register(r'pantry-ingredients', PantryIngredientViewSet, basename='pantry-ingredient')
 router.register(r'profile', UserProfileViewSet, basename='profile')
+router.register(r'categorias', CategoryViewSet, basename='categoria')
+router.register(r'ingredientes', IngredientViewSet, basename='ingrediente')
 
 urlpatterns = [
     # Rutas del router

@@ -1,9 +1,25 @@
 import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 import YapaLogo from '../../assets/logo.png';
+import { getRecomendacionesDelDia } from '../../api/recipesApi';
 
 function Homepage() {
   const primaryColor = "#F99F3F";
   const navigate = useNavigate();
+  const [recomendaciones, setRecomendaciones] = useState([]);
+
+  useEffect(() => {
+    const fetchRecomendaciones = async () => {
+      try {
+        const data = await getRecomendacionesDelDia();
+        setRecomendaciones(data);
+      } catch (error) {
+        console.error('Error cargando recomendaciones:', error);
+      }
+    };
+
+    fetchRecomendaciones();
+  }, []);
 
   const handleVerRecetas = () => {
     navigate("/recetas");
@@ -37,7 +53,7 @@ function Homepage() {
             🍅
           </div>
         </div>
-</div>
+      </div>
 
 
 
@@ -51,7 +67,7 @@ function Homepage() {
           <h2 className="text-3xl font-normal text-gray-800 tracking-wider">
             ¿QUÉ COCINO HOY?
           </h2>
-          <button 
+          <button
             className="px-6 py-1.5 text-white font-semibold rounded-lg shadow-md transition duration-150 hover:brightness-110 hover:shadow-lg cursor-pointer"
             style={{ backgroundColor: primaryColor }}
             onClick={handleVerRecetas}
@@ -82,10 +98,10 @@ function Homepage() {
               className="py-1.5 pl-2 pr-4 w-full focus:outline-none text-gray-700 placeholder-gray-500 bg-white"
             />
           </div>
-          <button 
+          <button
             className="px-8 py-1.5 text-white font-semibold rounded-lg shadow-md transition duration-150 hover:brightness-110 hover:shadow-lg cursor-pointer"
             style={{ backgroundColor: primaryColor }}
-            onClick={handleVerRecetas} 
+            onClick={handleVerRecetas}
           >
             Buscar
           </button>
@@ -95,7 +111,7 @@ function Homepage() {
           <h3 className="text-xl font-normal tracking-wider text-red-700">
             ¿QUÉ TENGO EN MI REFRI?
           </h3>
-          <button 
+          <button
             className="px-6 py-1.5 text-white font-semibold rounded-lg shadow-md transition duration-150 hover:brightness-110 hover:shadow-lg cursor-pointer"
             style={{ backgroundColor: primaryColor }}
             onClick={handleConsultar}
@@ -109,38 +125,56 @@ function Homepage() {
             RECOMENDACIONES DEL DÍA:
           </h2>
           <div className="flex justify-between space-x-8">
-            <div className="flex flex-col w-100 shadow-lg rounded-lg overflow-hidden bg-white hover:shadow-xl transition cursor-pointer relative">
-              <div className="h-[13vw] relative" style={{ backgroundColor: '#ff9a2e15' }}>
+            {recomendaciones.length > 0 ? (
+              recomendaciones.map((receta) => (
                 <div
-                  className="absolute bottom-[5%] left-[5%] px-2 py-1 rounded-full"
-                  style={{ backgroundColor: 'rgba(249, 159, 63, 0.6)' }}
+                  key={receta.id}
+                  className="flex flex-col w-100 shadow-lg rounded-lg overflow-hidden bg-white hover:shadow-xl transition cursor-pointer relative"
                 >
-                  <p className="text-black font-bold text-sm">COSTILLAR DORADO</p>
+                  <div className="h-[13vw] relative" style={{ backgroundColor: '#ff9a2e15' }}>
+                    <div
+                      className="absolute bottom-[5%] left-[5%] px-2 py-1 rounded-full"
+                      style={{ backgroundColor: 'rgba(249, 159, 63, 0.6)' }}
+                    >
+                      <p className="text-black font-bold text-sm">{receta.title.toUpperCase()}</p>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-
-            <div className="flex flex-col w-100 shadow-lg rounded-lg overflow-hidden bg-white hover:shadow-xl transition cursor-pointer relative">
-              <div className="h-[13vw] relative" style={{ backgroundColor: '#ff9a2e15' }}>
-                <div
-                  className="absolute bottom-[5%] left-[5%] px-2 py-1 rounded-full"
-                  style={{ backgroundColor: 'rgba(249, 159, 63, 0.6)' }}
-                >
-                  <p className="text-black font-bold text-sm">OCOPA PERUANA</p>
+              ))
+            ) : (
+              <>
+                <div className="flex flex-col w-100 shadow-lg rounded-lg overflow-hidden bg-white hover:shadow-xl transition cursor-pointer relative">
+                  <div className="h-[13vw] relative" style={{ backgroundColor: '#ff9a2e15' }}>
+                    <div
+                      className="absolute bottom-[5%] left-[5%] px-2 py-1 rounded-full"
+                      style={{ backgroundColor: 'rgba(249, 159, 63, 0.6)' }}
+                    >
+                      <p className="text-black font-bold text-sm">CARGANDO...</p>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-
-            <div className="flex flex-col w-100 shadow-lg rounded-lg overflow-hidden bg-white hover:shadow-xl transition cursor-pointer relative">
-              <div className="h-[13vw] relative" style={{ backgroundColor: '#ff9a2e15' }}>
-                <div
-                  className="absolute bottom-[5%] left-[5%] px-2 py-1 rounded-full"
-                  style={{ backgroundColor: 'rgba(249, 159, 63, 0.6)' }}
-                >
-                  <p className="text-black font-bold text-sm">AJÍ DE GALLINA</p>
+                <div className="flex flex-col w-100 shadow-lg rounded-lg overflow-hidden bg-white hover:shadow-xl transition cursor-pointer relative">
+                  <div className="h-[13vw] relative" style={{ backgroundColor: '#ff9a2e15' }}>
+                    <div
+                      className="absolute bottom-[5%] left-[5%] px-2 py-1 rounded-full"
+                      style={{ backgroundColor: 'rgba(249, 159, 63, 0.6)' }}
+                    >
+                      <p className="text-black font-bold text-sm">CARGANDO...</p>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
+                <div className="flex flex-col w-100 shadow-lg rounded-lg overflow-hidden bg-white hover:shadow-xl transition cursor-pointer relative">
+                  <div className="h-[13vw] relative" style={{ backgroundColor: '#ff9a2e15' }}>
+                    <div
+                      className="absolute bottom-[5%] left-[5%] px-2 py-1 rounded-full"
+                      style={{ backgroundColor: 'rgba(249, 159, 63, 0.6)' }}
+                    >
+                      <p className="text-black font-bold text-sm">CARGANDO...</p>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
 
