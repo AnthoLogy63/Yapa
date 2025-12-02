@@ -88,8 +88,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return []
 
     def perform_create(self, serializer):
-        """Asignar el usuario autenticado como creador de la receta"""
-        serializer.save(user=self.request.user)
+        """Asignar el usuario autenticado como creador de la receta y activarla por defecto"""
+        serializer.save(user=self.request.user, is_active=True)
     
     @extend_schema(
         tags=['Recetas'],

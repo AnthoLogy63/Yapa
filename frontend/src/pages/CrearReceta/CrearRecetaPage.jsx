@@ -1,7 +1,9 @@
 import React from 'react';
 import { Trash2, ChevronUp, ChevronDown, Plus } from 'lucide-react';
 import { useAuth } from "../../context/AuthContext";
+import { useNavigate } from 'react-router-dom';
 import ConfirmacionSalida from '../../components/modals/ConfirmacionSalida';
+import { createRecipe } from '../../api/recipesApi';
 
 const InputField = ({ placeholder, value, onChange, width = 'full', type = 'text', className = '' }) => (
   <input
@@ -18,7 +20,8 @@ const InputField = ({ placeholder, value, onChange, width = 'full', type = 'text
 );
 
 function CrearRecetaPage() {
-  const { user, isLogged } = useAuth();
+  const { user, isLogged, token } = useAuth();
+  const navigate = useNavigate();
 
   // -------- MODAL DE CONFIRMACIÓN --------
   const [showExitModal, setShowExitModal] = React.useState(false);
@@ -27,12 +30,14 @@ function CrearRecetaPage() {
 
   // -------- IMAGE UPLOAD STATE --------
   const [previewImage, setPreviewImage] = React.useState(null);
+  const [imageFile, setImageFile] = React.useState(null);
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
     const url = URL.createObjectURL(file);
     setPreviewImage(url);
+    setImageFile(file);
     markAsChanged();
   };
 
@@ -41,8 +46,12 @@ function CrearRecetaPage() {
 
   // ---------- ESTADOS ----------
   const [titulo, setTitulo] = React.useState("");
+  const [descripcion, setDescripcion] = React.useState("");
   const [comensales, setComensales] = React.useState("");
   const [tiempo, setTiempo] = React.useState("");
+  const [dificultad, setDificultad] = React.useState("Media");
+  const [categoria, setCategoria] = React.useState("");
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   // INGREDIENTES
   const [ingredientes, setIngredientes] = React.useState([
@@ -158,6 +167,62 @@ function CrearRecetaPage() {
     setPendingNavigation(null);
   };
 
+  // Función para guardar la receta
+  const handleGuardarReceta = async () => {
+    // Validaciones
+    if (!titulo.trim()) {
+      alert('Por favor ingresa un título para la receta');
+      return;
+    }
+    if (!tiempo || isNaN(parseInt(tiempo))) {
+      alert('Por favor ingresa un tiempo de preparación válido en minutos');
+      return;
+    }
+    if (!comensales || isNaN(parseInt(comensales))) {
+      alert('Por favor ingresa el número de comensales');
+      return;
+    }
+
+    if (!isLogged) {
+      alert('Debes iniciar sesión para crear una receta');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      if (!token) {
+        alert('No se encontró el token de autenticación. Por favor inicia sesión nuevamente.');
+        setIsSubmitting(false);
+        return;
+      }
+
+      const recipeData = {
+        title: titulo.trim(),
+        description: descripcion.trim(),
+        preparation_time: parseInt(tiempo),
+        difficulty: dificultad,
+        portions: parseInt(comensales),
+        category: categoria || null,
+        image: imageFile,
+      };
+
+      const response = await createRecipe(recipeData, token);
+
+      alert('¡Receta creada exitosamente!');
+      setHasChanges(false);
+
+      // Redirigir a la página de detalle de la receta o a mis recetas
+      navigate(`/recetas/${response.id}`);
+
+    } catch (error) {
+      console.error('Error al crear la receta:', error);
+      alert('Hubo un error al crear la receta. Por favor intenta nuevamente.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const userAvatar =
     user?.picture ||
     user?.avatar ||
@@ -222,6 +287,8 @@ function CrearRecetaPage() {
             <textarea
               placeholder="Descripción"
               rows="3"
+              value={descripcion}
+              onChange={(e) => { setDescripcion(e.target.value); markAsChanged(); }}
               className="w-full p-3 bg-orange-50/70 border-b-2 border-orange-200 
               focus:outline-none focus:border-[#FFAF45] rounded-lg resize-none 
               placeholder:text-gray-400"
@@ -353,6 +420,17 @@ function CrearRecetaPage() {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Botón para guardar receta */}
+        <div className="flex justify-center mt-8">
+          <button
+            onClick={handleGuardarReceta}
+            disabled={isSubmitting || !isLogged}
+            className="px-8 py-3 bg-[#F99F3F] text-white font-semibold rounded-lg shadow-md hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed transition"
+          >
+            {isSubmitting ? 'Guardando...' : 'Guardar Receta'}
+          </button>
         </div>
 
       </div>

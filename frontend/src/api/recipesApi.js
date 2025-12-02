@@ -31,3 +31,39 @@ export const getRecipeById = async (id) => {
     throw err;
   }
 };
+
+export const createRecipe = async (recipeData, token) => {
+  try {
+    const formData = new FormData();
+
+    // Agregar campos básicos
+    formData.append('title', recipeData.title);
+    formData.append('description', recipeData.description || '');
+    formData.append('preparation_time', recipeData.preparation_time);
+    formData.append('difficulty', recipeData.difficulty || 'Media');
+    formData.append('portions', recipeData.portions);
+
+    // Agregar categoría si existe
+    if (recipeData.category) {
+      formData.append('category', recipeData.category);
+    }
+
+    // Agregar imagen si existe
+    if (recipeData.image) {
+      formData.append('image', recipeData.image);
+    }
+
+    const res = await axios.post(API_URL, formData, {
+      headers: {
+        'Authorization': `Token ${token}`,
+        // NO establecer Content-Type manualmente - axios lo hace automáticamente con FormData
+      },
+    });
+
+    return res.data;
+  } catch (err) {
+    console.error('Error creando receta:', err);
+    console.error('Detalles del error:', err.response?.data);
+    throw err;
+  }
+};
