@@ -27,6 +27,9 @@ INSTALLED_APPS = [
     'dj_rest_auth.registration',
     'api', 
     'rest_framework',
+    'drf_spectacular',
+    'drf_spectacular_sidecar',
+    'drf_yasg',
     'django.contrib.sites',  
     'allauth',
     'allauth.account',
@@ -105,13 +108,16 @@ STATIC_URL = 'static/'
 
 # Donde se guardan las imágenes subidas
 MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
+MEDIA_ROOT = BASE_DIR / "uploads"
+
+
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Django Rest Framework
 REST_FRAMEWORK = {
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.TokenAuthentication',
@@ -139,3 +145,56 @@ SOCIALACCOUNT_ADAPTER = 'api.adapters.GoogleAdapter'
 
 LOGIN_REDIRECT_URL = '/'  
 LOGOUT_REDIRECT_URL = '/'  
+
+# Configuración de drf-spectacular para documentación de API
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'API de Recetas',
+    'DESCRIPTION': 'API REST para gestión de recetas, ingredientes, despensa y favoritos. Incluye autenticación con Google OAuth.',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'SCHEMA_PATH_PREFIX': '/api/',
+    'COMPONENT_SPLIT_REQUEST': True,
+    'SORT_OPERATIONS': False,
+    
+    # Configuración de idioma
+    'LANGUAGE': 'es',
+    
+    # Configuración de autenticación
+    'SECURITY': [
+        {
+            'tokenAuth': [],
+        }
+    ],
+    'APPEND_COMPONENTS': {
+        'securitySchemes': {
+            'tokenAuth': {
+                'type': 'apiKey',
+                'in': 'header',
+                'name': 'Authorization',
+                'description': 'Token de autenticación. Formato: "Token <tu_token_aquí>"'
+            }
+        }
+    },
+    
+    # Configuración de UI
+    'SWAGGER_UI_SETTINGS': {
+        'deepLinking': True,
+        'persistAuthorization': True,
+        'displayOperationId': False,
+        'defaultModelsExpandDepth': 2,
+        'defaultModelExpandDepth': 2,
+        'displayRequestDuration': True,
+        'filter': True,
+    },
+    
+    # Tags personalizados
+    'TAGS': [
+        {'name': 'Autenticación', 'description': 'Endpoints de autenticación y gestión de usuarios'},
+        {'name': 'Recetas', 'description': 'CRUD de recetas y recomendaciones'},
+        {'name': 'Favoritos', 'description': 'Gestión de recetas favoritas'},
+        {'name': 'Despensa', 'description': 'Gestión de despensa e ingredientes'},
+        {'name': 'Categorías', 'description': 'Categorías de recetas'},
+        {'name': 'Ingredientes', 'description': 'Ingredientes disponibles'},
+    ],
+}
+  

@@ -23,7 +23,11 @@ class DietaryRestriction(models.Model):
     date_register = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        db_table = 'dietary_restriction'
+        verbose_name = 'Dietary Restriction'
+        verbose_name_plural = 'Dietary Restrictions'
         unique_together = ('user', 'ingredient', 'type_restriction')
+        ordering = ['user', 'ingredient']
 
     def __str__(self):
         return f"{self.type_restriction} a {self.ingredient.name} - {self.user.username}"

@@ -7,6 +7,8 @@ from .recipe import (
 )
 from .pantry import PantrySerializer, PantryIngredientSerializer
 from .dietary import DietaryRestrictionSerializer
+from .user import UserSerializer, UserProfileSerializer
+from .favorite import FavoriteRecipeSerializer, FavoriteRecipeListSerializer
 
 __all__ = [
     "CategorySerializer",
@@ -17,4 +19,8 @@ __all__ = [
     "PantrySerializer",
     "PantryIngredientSerializer",
     "DietaryRestrictionSerializer",
+    "UserSerializer",
+    "UserProfileSerializer",
+    "FavoriteRecipeSerializer",
+    "FavoriteRecipeListSerializer",
 ]

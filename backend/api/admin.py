@@ -8,6 +8,8 @@ from api.models import (
     Pantry,
     PantryIngredient,
     DietaryRestriction,
+    UserProfile,
+    FavoriteRecipe,
 )
 
 
@@ -86,3 +88,19 @@ class PantryIngredientAdmin(admin.ModelAdmin):
 class DietaryRestrictionAdmin(admin.ModelAdmin):
     list_display = ("id", "user", "ingredient", "type_restriction", "date_register")
     list_filter = ("type_restriction", "user")
+
+
+@admin.register(UserProfile)
+class UserProfileAdmin(admin.ModelAdmin):
+    list_display = ("id", "user", "profile_picture", "phone", "created_at")
+    search_fields = ("user__username", "user__email")
+    list_filter = ("created_at",)
+
+
+@admin.register(FavoriteRecipe)
+class FavoriteRecipeAdmin(admin.ModelAdmin):
+    list_display = ("id", "user", "recipe", "date_added")
+    search_fields = ("user__username", "recipe__title")
+    list_filter = ("date_added",)
+    autocomplete_fields = ("user", "recipe")
+

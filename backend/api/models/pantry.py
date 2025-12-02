@@ -19,6 +19,12 @@ class Pantry(models.Model):
     date_register = models.DateTimeField(auto_now_add=True)
     date_update = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        db_table = 'pantry'
+        verbose_name = 'Pantry'
+        verbose_name_plural = 'Pantries'
+        ordering = ['user', 'name']
+
     def __str__(self):
         return f"{self.name} - {self.user.username}"
 
@@ -44,7 +50,11 @@ class PantryIngredient(models.Model):
     date_expiration = models.DateField(null=True, blank=True)
 
     class Meta:
+        db_table = 'pantry_ingredient'
+        verbose_name = 'Pantry Ingredient'
+        verbose_name_plural = 'Pantry Ingredients'
         unique_together = ('pantry', 'ingredient', 'date_aggregate')
+        ordering = ['pantry', 'ingredient']
 
     def __str__(self):
         return f"{self.ingredient.name} en {self.pantry.name}"

@@ -1,5 +1,6 @@
 from django.db import models
 
+
 class Ingredient(models.Model):
     """
     Ingrediente general: arroz, pollo, leche, etc.
@@ -13,6 +14,12 @@ class Ingredient(models.Model):
     )
     note = models.TextField(blank=True)
     date_register = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'ingredient'
+        verbose_name = 'Ingredient'
+        verbose_name_plural = 'Ingredients'
+        ordering = ['name']
 
     def __str__(self):
         return self.name

@@ -30,12 +30,18 @@ class Recipe(models.Model):
     date_register = models.DateTimeField(auto_now_add=True)
     date_update = models.DateTimeField(auto_now=True)
     is_active = models.BooleanField(default=True)
-    image = models.ImageField(   # <--- NUEVO
-        upload_to="recipes/",
+    image = models.ImageField(
+        upload_to="uploads/images/",
         null=True,
         blank=True,
         help_text="Imagen principal de la receta"
     )
+    
+    class Meta:
+        db_table = 'recipe'
+        verbose_name = 'Recipe'
+        verbose_name_plural = 'Recipes'
+        ordering = ['-date_register']
     
     def __str__(self):
         return self.title
@@ -52,7 +58,7 @@ class StepRecipe(models.Model):
     )
     description = models.TextField()
     photo = models.ImageField(
-        upload_to='recipes/steps/',
+        upload_to='uploads/steps/',
         null=True,
         blank=True
     )
@@ -61,6 +67,12 @@ class StepRecipe(models.Model):
         blank=True,
         help_text="Tiempo estimado de este paso en minutos"
     )
+
+    class Meta:
+        db_table = 'step_recipe'
+        verbose_name = 'Recipe Step'
+        verbose_name_plural = 'Recipe Steps'
+        ordering = ['recipe', 'id']
 
     def __str__(self):
         return f"Paso de {self.recipe.title}"
@@ -87,6 +99,9 @@ class RecipeIngredient(models.Model):
     is_optional = models.BooleanField(default=False)
 
     class Meta:
+        db_table = 'recipe_ingredient'
+        verbose_name = 'Recipe Ingredient'
+        verbose_name_plural = 'Recipe Ingredients'
         unique_together = ('ingredient', 'recipe', 'order')
         ordering = ['recipe', 'order']
 
