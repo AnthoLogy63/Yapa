@@ -8,6 +8,7 @@ function Navbar() {
   const navigate = useNavigate();
   const [showLogin, setShowLogin] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
   const { user, isLogged, logout } = useAuth();
   const dropdownRef = useRef(null);
 
@@ -80,6 +81,12 @@ function Navbar() {
     setShowDropdown(false);
   };
 
+  const handleSearch = () => {
+    if (searchTerm.trim()) {
+      navigate(`/recetas?search=${encodeURIComponent(searchTerm.trim())}`);
+    }
+  };
+
   return (
     <div className="flex items-center justify-between min-h-18 px-10 bg-white w-full mx-auto mb-3">
       <div className="flex items-center space-x-3">
@@ -110,12 +117,16 @@ function Navbar() {
                 type="text"
                 placeholder="Palabra Buscada"
                 className="py-1 pl-2 pr-4 w-full focus:outline-none text-gray-700 placeholder-gray-500 bg-white"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
               />
             </div>
 
             <button
               className="px-6 py-1.5 text-white font-semibold rounded-lg shadow-md hover:brightness-110 cursor-pointer"
               style={{ backgroundColor: '#F99F3F' }}
+              onClick={handleSearch}
             >
               Buscar
             </button>

@@ -12,9 +12,10 @@ export const getRecomendacionesDelDia = async () => {
   }
 };
 
-export const getAllRecipes = async () => {
+export const getAllRecipes = async (search = '') => {
   try {
-    const res = await axios.get(API_URL);
+    const url = search ? `${API_URL}?search=${encodeURIComponent(search)}` : API_URL;
+    const res = await axios.get(url);
     return res.data;
   } catch (err) {
     console.error('Error obteniendo recetas:', err);
