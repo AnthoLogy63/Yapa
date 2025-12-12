@@ -2,6 +2,7 @@ from rest_framework import serializers
 from api.models import Recipe, StepRecipe, RecipeIngredient
 from .category import CategorySerializer
 from .ingredient import IngredientSerializer
+from .user import UserSerializer
 
 
 class StepRecipeSerializer(serializers.ModelSerializer):
@@ -22,6 +23,7 @@ class RecipeSerializer(serializers.ModelSerializer):
     category = CategorySerializer(read_only=True)
     steps = StepRecipeSerializer(many=True, read_only=True)
     recipe_ingredients = RecipeIngredientSerializer(many=True, read_only=True)
+    user = UserSerializer(read_only=True)
     image = serializers.SerializerMethodField()
 
 
@@ -39,6 +41,7 @@ class RecipeSerializer(serializers.ModelSerializer):
             "category",
             "steps",
             "recipe_ingredients",
+            "user",
             "image",
         ]
 
