@@ -55,6 +55,7 @@ class RecipeSerializer(serializers.ModelSerializer):
             "image",
             "ingredients_input",
             "steps_input",
+            "date_register",
         ]
 
     def to_representation(self, instance):
