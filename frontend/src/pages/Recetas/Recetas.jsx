@@ -77,7 +77,7 @@ function RecetasPage() {
                 key={recipe.id}
                 onClick={() => navigate(`/recetas/${recipe.id}`)}
                 className="w-full bg-[rgba(255,223,88,0.1)] border-[1px] border-[rgb(200,200,200)] rounded-xl shadow p-0 flex gap-0 cursor-pointer 
-                transition transform hover:scale-[1.01] active:scale-[0.98]"
+                transition transform hover:scale-[1.01] active:scale-[0.98] h-52"
               >
                 <div className="flex-shrink-0 w-[35%] max-w-70 rounded-l-xl overflow-hidden">
                   {recipe.image ? (
