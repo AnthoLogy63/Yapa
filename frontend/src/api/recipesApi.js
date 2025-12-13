@@ -54,6 +54,20 @@ export const createRecipe = async (recipeData, token) => {
       formData.append('image', recipeData.image);
     }
 
+    // Agregar ingredientes (lista de strings)
+    if (recipeData.ingredients && Array.isArray(recipeData.ingredients)) {
+      recipeData.ingredients.forEach(ing => {
+        formData.append('ingredients_input', ing);
+      });
+    }
+
+    // Agregar pasos (lista de strings)
+    if (recipeData.steps && Array.isArray(recipeData.steps)) {
+      recipeData.steps.forEach(step => {
+        formData.append('steps_input', step);
+      });
+    }
+
     const res = await axios.post(API_URL, formData, {
       headers: {
         'Authorization': `Token ${token}`,

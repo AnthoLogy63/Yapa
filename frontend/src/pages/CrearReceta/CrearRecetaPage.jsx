@@ -205,6 +205,8 @@ function CrearRecetaPage() {
         portions: parseInt(comensales),
         category: categoria || null,
         image: imageFile,
+        ingredients: ingredientes.map(i => i.text).filter(t => t.trim() !== ''),
+        steps: pasos.map(p => p.text).filter(t => t.trim() !== ''),
       };
 
       const response = await createRecipe(recipeData, token);
