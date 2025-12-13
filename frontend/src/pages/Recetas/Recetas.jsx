@@ -20,7 +20,7 @@ function RecetasPage() {
     const fetchRecipes = async () => {
       setLoading(true);
       try {
-        const data = await getAllRecipes(searchTerm);
+        const data = await getAllRecipes(searchTerm, listCon, listSin);
         setRecipes(data);
         if (searchTerm) {
           console.log("Busqueda exitosa");
@@ -33,7 +33,7 @@ function RecetasPage() {
     };
 
     fetchRecipes();
-  }, [searchTerm]);
+  }, [searchTerm, listCon, listSin]);
 
   const agregarCon = () => {
     if (ingCon.trim() === "") return;

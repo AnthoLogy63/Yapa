@@ -74,6 +74,25 @@ class RecipeViewSet(viewsets.ModelViewSet):
     filter_backends = [filters.SearchFilter]
     search_fields = ['title', 'description']
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        
+        # Filtrado por ingredientes incluidos (AND logic)
+        with_ingredients = self.request.query_params.get('with_ingredients')
+        if with_ingredients:
+            ingredients = [i.strip() for i in with_ingredients.split(',') if i.strip()]
+            for ingredient in ingredients:
+                queryset = queryset.filter(recipe_ingredients__ingredient__name__icontains=ingredient)
+
+        # Filtrado por ingredientes excluidos (NOT logic)
+        without_ingredients = self.request.query_params.get('without_ingredients')
+        if without_ingredients:
+            ingredients = [i.strip() for i in without_ingredients.split(',') if i.strip()]
+            for ingredient in ingredients:
+                queryset = queryset.exclude(recipe_ingredients__ingredient__name__icontains=ingredient)
+        
+        return queryset
+
     def get_serializer_context(self):
         context = super().get_serializer_context()
         context["request"] = self.request

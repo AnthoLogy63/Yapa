@@ -12,10 +12,14 @@ export const getRecomendacionesDelDia = async () => {
   }
 };
 
-export const getAllRecipes = async (search = '') => {
+export const getAllRecipes = async (search = '', withIngredients = [], withoutIngredients = []) => {
   try {
-    const url = search ? `${API_URL}?search=${encodeURIComponent(search)}` : API_URL;
-    const res = await axios.get(url);
+    const params = new URLSearchParams();
+    if (search) params.append('search', search);
+    if (withIngredients.length > 0) params.append('with_ingredients', withIngredients.join(','));
+    if (withoutIngredients.length > 0) params.append('without_ingredients', withoutIngredients.join(','));
+
+    const res = await axios.get(`${API_URL}?${params.toString()}`);
     return res.data;
   } catch (err) {
     console.error('Error obteniendo recetas:', err);
