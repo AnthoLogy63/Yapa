@@ -319,7 +319,7 @@ function CrearRecetaPage() {
               {ingredientes.map((item) => (
                 <div key={item.id} className="flex items-center space-x-2">
 
-                  {/* 🔥 CONTROLES DE MOVER INGREDIENTES 🔥 */}
+                  {/* CONTROLES DE MOVER INGREDIENTES */}
                   <div className="flex flex-col text-gray-400">
                     <button onClick={() => moverIngrediente(item.id, -1)}>
                       <ChevronUp size={18} className="hover:text-[#FFAF45] cursor-pointer" />
@@ -330,10 +330,40 @@ function CrearRecetaPage() {
                     </button>
                   </div>
 
+                  {/* Campo de Ingrediente - MÁS GRANDE */}
                   <InputField
                     placeholder="Ingrediente"
                     value={item.text}
                     onChange={(e) => actualizarIngrediente(item.id, e.target.value)}
+                    width="flex-1"
+                  />
+
+                  {/* Campo de Cantidad */}
+                  <InputField
+                    placeholder="Cantidad"
+                    value={item.cantidad || ''}
+                    onChange={(e) => {
+                      const updated = ingredientes.map(i => 
+                        i.id === item.id ? {...i, cantidad: e.target.value} : i
+                      );
+                      setIngredientes(updated);
+                      markAsChanged();
+                    }}
+                    width="w-24"
+                  />
+
+                  {/* Campo de Unidad */}
+                  <InputField
+                    placeholder="Unidad"
+                    value={item.unidad || ''}
+                    onChange={(e) => {
+                      const updated = ingredientes.map(i => 
+                        i.id === item.id ? {...i, unidad: e.target.value} : i
+                      );
+                      setIngredientes(updated);
+                      markAsChanged();
+                    }}
+                    width="w-28"
                   />
 
                   <button
@@ -364,7 +394,7 @@ function CrearRecetaPage() {
             <div className="flex items-center gap-4 pr-6">
               <label className="text-gray-700 font-medium">Tiempo:</label>
               <InputField
-                placeholder="Ej: 1h 30min"
+                placeholder="Ej: 120 min"
                 width="w-32"
                 value={tiempo}
                 onChange={(e) => setTiempo(e.target.value)}
@@ -437,7 +467,7 @@ function CrearRecetaPage() {
 
       </div>
 
-      {/* Modal de confirmaci\u00f3n de salida */}
+      {/* Modal de confirmación de salida */}
       {showExitModal && (
         <ConfirmacionSalida
           onClose={handleCancelExit}
