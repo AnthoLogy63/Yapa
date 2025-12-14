@@ -111,6 +111,30 @@ function RecetasPage() {
                       </svg>
                       <span>{recipe.portions} porciones</span>
                     </div>
+                    
+                    {/* DIFICULTAD CON BARRAS */}
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-end gap-0.5 h-5">
+                        <div className={`w-1 ${
+                          recipe.difficulty === 'Fácil' || recipe.difficulty === 'Media' || recipe.difficulty === 'Difícil' 
+                          ? 'bg-gray-700 h-2' 
+                          : 'bg-gray-300 h-2'
+                        }`}></div>
+                        
+                        <div className={`w-1 ${
+                          recipe.difficulty === 'Media' || recipe.difficulty === 'Difícil'
+                          ? 'bg-gray-700 h-3.5' 
+                          : 'bg-gray-300 h-3.5'
+                        }`}></div>
+                        
+                        <div className={`w-1 ${
+                          recipe.difficulty === 'Difícil'
+                          ? 'bg-gray-700 h-5' 
+                          : 'bg-gray-300 h-5'
+                        }`}></div>
+                      </div>
+                      <span>{recipe.difficulty || 'Media'}</span>
+                    </div>
                   </div>
                 </div>
               </div>
