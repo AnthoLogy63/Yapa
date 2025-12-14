@@ -4,12 +4,18 @@ import { useNavigate } from "react-router-dom";
 
 const CategoryCard = ({ title, ingredients, onAdd, onRemove }) => {
   const [isAdding, setIsAdding] = useState(false);
-  const [newIngredient, setNewIngredient] = useState("");
+  const [newIngredient, setNewIngredient] = useState({
+    cantidad: "",
+    unidad: "",
+    nombre: ""
+  });
 
   const handleAdd = () => {
-    if (newIngredient.trim()) {
-      onAdd(newIngredient.trim());
-      setNewIngredient("");
+    const { cantidad, unidad, nombre } = newIngredient;
+    if (nombre.trim()) {
+      const ingredientText = `${nombre} ${cantidad} ${unidad}`.trim();
+      onAdd(ingredientText);
+      setNewIngredient({ cantidad: "", unidad: "", nombre: "" });
       setIsAdding(false);
     }
   };
@@ -19,7 +25,7 @@ const CategoryCard = ({ title, ingredients, onAdd, onRemove }) => {
       handleAdd();
     } else if (e.key === "Escape") {
       setIsAdding(false);
-      setNewIngredient("");
+      setNewIngredient({ cantidad: "", unidad: "", nombre: "" });
     }
   };
 
@@ -51,12 +57,28 @@ const CategoryCard = ({ title, ingredients, onAdd, onRemove }) => {
           <div className="flex items-center w-full gap-2">
             <input
               type="text"
-              value={newIngredient}
-              onChange={(e) => setNewIngredient(e.target.value)}
+              value={newIngredient.nombre}
+              onChange={(e) => setNewIngredient(prev => ({ ...prev, nombre: e.target.value }))}
               onKeyDown={handleKeyDown}
               autoFocus
-              className="flex-1 border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:border-gray-500"
+              className="w-28 border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:border-gray-500"
               placeholder="Nombre..."
+            />
+            <input
+              type="text"
+              value={newIngredient.cantidad}
+              onChange={(e) => setNewIngredient(prev => ({ ...prev, cantidad: e.target.value }))}
+              onKeyDown={handleKeyDown}
+              className="w-18 border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:border-gray-500"
+              placeholder="Cant."
+            />
+            <input
+              type="text"
+              value={newIngredient.unidad}
+              onChange={(e) => setNewIngredient(prev => ({ ...prev, unidad: e.target.value }))}
+              onKeyDown={handleKeyDown}
+              className="w-22 border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:border-gray-500"
+              placeholder="Unidad"
             />
             <button
               onClick={handleAdd}
@@ -65,7 +87,10 @@ const CategoryCard = ({ title, ingredients, onAdd, onRemove }) => {
               <Plus size={18} />
             </button>
             <button
-              onClick={() => setIsAdding(false)}
+              onClick={() => {
+                setIsAdding(false);
+                setNewIngredient({ cantidad: "", unidad: "", nombre: "" });
+              }}
               className="text-red-500 hover:text-red-600 cursor-pointer"
             >
               <X size={18} />
