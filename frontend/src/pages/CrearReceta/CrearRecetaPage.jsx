@@ -49,7 +49,7 @@ function CrearRecetaPage() {
   const [descripcion, setDescripcion] = React.useState("");
   const [comensales, setComensales] = React.useState("");
   const [tiempo, setTiempo] = React.useState("");
-  const [dificultad, setDificultad] = React.useState("Media");
+  const [dificultad, setDificultad] = React.useState("");
   const [categoria, setCategoria] = React.useState("");
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
@@ -399,6 +399,21 @@ function CrearRecetaPage() {
                 value={tiempo}
                 onChange={(e) => setTiempo(e.target.value)}
               />
+              <span className="font-semibold text-gray-700 ml-4">Dificultad:</span>
+              <select
+                value={dificultad}
+                onChange={(e) => {
+                  setDificultad(e.target.value);
+                  markAsChanged();
+                }}
+                className="px-3 py-2 bg-orange-50/70 border-b-2 border-orange-200 focus:outline-none focus:border-[#FFAF45] rounded-lg"
+                style={{ color: dificultad ? '#374151' : '#9ca3af' }}
+              >
+                <option value="">Seleccionar</option>
+                <option value="Fácil">Fácil</option>
+                <option value="Media">Media</option>
+                <option value="Difícil">Difícil</option>
+              </select>
             </div>
 
             <div className="space-y-4">
