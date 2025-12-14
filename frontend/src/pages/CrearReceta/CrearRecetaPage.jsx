@@ -55,13 +55,13 @@ function CrearRecetaPage() {
 
   // INGREDIENTES
   const [ingredientes, setIngredientes] = React.useState([
-    { id: 1, text: '' },
-    { id: 2, text: '' },
+    { id: 1, cantidad: '', unidad: '', text: '' },
+    { id: 2, cantidad: '', unidad: '', text: '' },
   ]);
 
   const agregarIngrediente = () => {
     const newId = idRef.current++;
-    setIngredientes(prev => [...prev, { id: newId, text: '' }]);
+    setIngredientes(prev => [...prev, { id: newId, cantidad: '', unidad: '', text: '' }]);
   };
 
   const eliminarIngrediente = (id) => {
