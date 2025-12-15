@@ -16,11 +16,26 @@ function RecetasPage() {
   const [ingSin, setIngSin] = useState("");
   const [listSin, setListSin] = useState([]);
 
+  const [showDificultad, setShowDificultad] = useState(false);
+  const [showTiempo, setShowTiempo] = useState(false);
+  const [showPorciones, setShowPorciones] = useState(false);
+
+  const [selectedDificultad, setSelectedDificultad] = useState("");
+  const [selectedTiempo, setSelectedTiempo] = useState("");
+  const [selectedPorciones, setSelectedPorciones] = useState("");
+
   useEffect(() => {
     const fetchRecipes = async () => {
       setLoading(true);
       try {
-        const data = await getAllRecipes(searchTerm);
+        const data = await getAllRecipes(
+          searchTerm, 
+          listCon, 
+          listSin,
+          selectedDificultad,
+          selectedTiempo,
+          selectedPorciones
+        );
         setRecipes(data);
         if (searchTerm) {
           console.log("Busqueda exitosa");
@@ -33,7 +48,7 @@ function RecetasPage() {
     };
 
     fetchRecipes();
-  }, [searchTerm]);
+  }, [searchTerm, listCon, listSin, selectedDificultad, selectedTiempo, selectedPorciones]);
 
   const agregarCon = () => {
     if (ingCon.trim() === "") return;
@@ -77,7 +92,7 @@ function RecetasPage() {
                 key={recipe.id}
                 onClick={() => navigate(`/recetas/${recipe.id}`)}
                 className="w-full bg-[rgba(255,223,88,0.1)] border-[1px] border-[rgb(200,200,200)] rounded-xl shadow p-0 flex gap-0 cursor-pointer 
-                transition transform hover:scale-[1.01] active:scale-[0.98]"
+                transition transform hover:scale-[1.01] active:scale-[0.98] h-52"
               >
                 <div className="flex-shrink-0 w-[35%] max-w-70 rounded-l-xl overflow-hidden">
                   {recipe.image ? (
@@ -110,6 +125,30 @@ function RecetasPage() {
                         <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
                       </svg>
                       <span>{recipe.portions} porciones</span>
+                    </div>
+                    
+                    {/* DIFICULTAD CON BARRAS */}
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-end gap-0.5 h-5">
+                        <div className={`w-1 ${
+                          recipe.difficulty === 'Fácil' || recipe.difficulty === 'Media' || recipe.difficulty === 'Difícil' 
+                          ? 'bg-gray-700 h-2' 
+                          : 'bg-gray-300 h-2'
+                        }`}></div>
+                        
+                        <div className={`w-1 ${
+                          recipe.difficulty === 'Media' || recipe.difficulty === 'Difícil'
+                          ? 'bg-gray-700 h-3.5' 
+                          : 'bg-gray-300 h-3.5'
+                        }`}></div>
+                        
+                        <div className={`w-1 ${
+                          recipe.difficulty === 'Difícil'
+                          ? 'bg-gray-700 h-5' 
+                          : 'bg-gray-300 h-5'
+                        }`}></div>
+                      </div>
+                      <span>{recipe.difficulty || 'Media'}</span>
                     </div>
                   </div>
                 </div>
@@ -198,6 +237,227 @@ function RecetasPage() {
                 </button>
               </div>
             ))}
+          </div>
+        </div>
+        
+        {/* FILTROS CON DROPDOWNS */}
+        <div className="mb-6">
+          <h4 className="font-medium text-lg mb-3">Filtros adicionales:</h4>
+          
+          <div className="flex gap-2">
+            
+            {/* DIFICULTAD */}
+            <div className="relative">
+              <button
+                onClick={() => {
+                  setShowDificultad(!showDificultad);
+                  setShowTiempo(false);
+                  setShowPorciones(false);
+                }}
+                className="px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-md hover:border-[#F99F3F] cursor-pointer flex items-center gap-2 min-w-[120px]"
+              >
+                <div className="flex items-end gap-0.5 h-3.5">
+                  <div className="w-0.5 bg-gray-700 h-1.5"></div>
+                  <div className="w-0.5 bg-gray-700 h-2.5"></div>
+                  <div className="w-0.5 bg-gray-700 h-3.5"></div>
+                </div>
+                <span className="truncate">{selectedDificultad || "Dificultad"}</span>
+                <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              
+              {showDificultad && (
+                <div className="absolute top-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg z-10 w-full">
+                  <div
+                    onClick={() => {
+                      setSelectedDificultad("");
+                      setShowDificultad(false);
+                    }}
+                    className="px-3 py-1.5 text-sm hover:bg-gray-100 cursor-pointer text-gray-400"
+                  >
+                    Todas
+                  </div>
+                  <div
+                    onClick={() => {
+                      setSelectedDificultad("Fácil");
+                      setShowDificultad(false);
+                    }}
+                    className="px-3 py-1.5 text-sm hover:bg-gray-100 cursor-pointer"
+                  >
+                    Fácil
+                  </div>
+                  <div
+                    onClick={() => {
+                      setSelectedDificultad("Media");
+                      setShowDificultad(false);
+                    }}
+                    className="px-3 py-1.5 text-sm hover:bg-gray-100 cursor-pointer"
+                  >
+                    Media
+                  </div>
+                  <div
+                    onClick={() => {
+                      setSelectedDificultad("Difícil");
+                      setShowDificultad(false);
+                    }}
+                    className="px-3 py-1.5 text-sm hover:bg-gray-100 cursor-pointer"
+                  >
+                    Difícil
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* TIEMPO */}
+            <div className="relative">
+              <button
+                onClick={() => {
+                  setShowTiempo(!showTiempo);
+                  setShowDificultad(false);
+                  setShowPorciones(false);
+                }}
+                className="px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-md hover:border-[#F99F3F] cursor-pointer flex items-center gap-2 min-w-[140px]"
+              >
+                <svg className="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                </svg>
+                <span className="truncate">{selectedTiempo ? selectedTiempo.replace("0-30", "≤ 30 min").replace("30-60", "30-60 min").replace("60-120", "1-2 h").replace("120+", "> 2 h") : "Preparación"}</span>
+                <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              
+              {showTiempo && (
+                <div className="absolute top-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg z-10 whitespace-nowrap">
+                  <div
+                    onClick={() => {
+                      setSelectedTiempo("");
+                      setShowTiempo(false);
+                    }}
+                    className="px-3 py-1.5 text-sm hover:bg-gray-100 cursor-pointer text-gray-400"
+                  >
+                    Cualquiera
+                  </div>
+                  <div
+                    onClick={() => {
+                      setSelectedTiempo("0-30");
+                      setShowTiempo(false);
+                    }}
+                    className="px-3 py-1.5 text-sm hover:bg-gray-100 cursor-pointer"
+                  >
+                    Hasta 30 min
+                  </div>
+                  <div
+                    onClick={() => {
+                      setSelectedTiempo("30-60");
+                      setShowTiempo(false);
+                    }}
+                    className="px-3 py-1.5 text-sm hover:bg-gray-100 cursor-pointer"
+                  >
+                    30 min - 1 h
+                  </div>
+                  <div
+                    onClick={() => {
+                      setSelectedTiempo("60-120");
+                      setShowTiempo(false);
+                    }}
+                    className="px-3 py-1.5 text-sm hover:bg-gray-100 cursor-pointer"
+                  >
+                    1 - 2 horas
+                  </div>
+                  <div
+                    onClick={() => {
+                      setSelectedTiempo("120+");
+                      setShowTiempo(false);
+                    }}
+                    className="px-3 py-1.5 text-sm hover:bg-gray-100 cursor-pointer"
+                  >
+                    Más de 2 h
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* PORCIONES */}
+            <div className="relative">
+              <button
+                onClick={() => {
+                  setShowPorciones(!showPorciones);
+                  setShowDificultad(false);
+                  setShowTiempo(false);
+                }}
+                className="px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-md hover:border-[#F99F3F] cursor-pointer flex items-center gap-2 min-w-[120px]"
+              >
+                <svg className="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                </svg>
+                <span className="truncate">{selectedPorciones || "Porciones"}</span>
+                <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              
+              {showPorciones && (
+                <div className="absolute top-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg z-10">
+                  <div
+                    onClick={() => {
+                      setSelectedPorciones("");
+                      setShowPorciones(false);
+                    }}
+                    className="px-3 py-1.5 text-sm hover:bg-gray-100 cursor-pointer text-gray-400"
+                  >
+                    Todas
+                  </div>
+                  <div
+                    onClick={() => {
+                      setSelectedPorciones("1");
+                      setShowPorciones(false);
+                    }}
+                    className="px-3 py-1.5 text-sm hover:bg-gray-100 cursor-pointer"
+                  >
+                    1 porción
+                  </div>
+                  <div
+                    onClick={() => {
+                      setSelectedPorciones("2");
+                      setShowPorciones(false);
+                    }}
+                    className="px-3 py-1.5 text-sm hover:bg-gray-100 cursor-pointer"
+                  >
+                    2 porciones
+                  </div>
+                  <div
+                    onClick={() => {
+                      setSelectedPorciones("3");
+                      setShowPorciones(false);
+                    }}
+                    className="px-3 py-1.5 text-sm hover:bg-gray-100 cursor-pointer"
+                  >
+                    3 porciones
+                  </div>
+                  <div
+                    onClick={() => {
+                      setSelectedPorciones("4");
+                      setShowPorciones(false);
+                    }}
+                    className="px-3 py-1.5 text-sm hover:bg-gray-100 cursor-pointer"
+                  >
+                    4 porciones
+                  </div>
+                  <div
+                    onClick={() => {
+                      setSelectedPorciones("5+");
+                      setShowPorciones(false);
+                    }}
+                    className="px-3 py-1.5 text-sm hover:bg-gray-100 cursor-pointer"
+                  >
+                    5+ porciones
+                  </div>
+                </div>
+              )}
+            </div>
+
           </div>
         </div>
 

@@ -49,19 +49,19 @@ function CrearRecetaPage() {
   const [descripcion, setDescripcion] = React.useState("");
   const [comensales, setComensales] = React.useState("");
   const [tiempo, setTiempo] = React.useState("");
-  const [dificultad, setDificultad] = React.useState("Media");
+  const [dificultad, setDificultad] = React.useState("");
   const [categoria, setCategoria] = React.useState("");
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   // INGREDIENTES
   const [ingredientes, setIngredientes] = React.useState([
-    { id: 1, text: '' },
-    { id: 2, text: '' },
+    { id: 1, cantidad: '', unidad: '', text: '' },
+    { id: 2, cantidad: '', unidad: '', text: '' },
   ]);
 
   const agregarIngrediente = () => {
     const newId = idRef.current++;
-    setIngredientes(prev => [...prev, { id: newId, text: '' }]);
+    setIngredientes(prev => [...prev, { id: newId, cantidad: '', unidad: '', text: '' }]);
   };
 
   const eliminarIngrediente = (id) => {
@@ -205,6 +205,8 @@ function CrearRecetaPage() {
         portions: parseInt(comensales),
         category: categoria || null,
         image: imageFile,
+        ingredients: ingredientes.map(i => i.text).filter(t => t.trim() !== ''),
+        steps: pasos.map(p => p.text).filter(t => t.trim() !== ''),
       };
 
       const response = await createRecipe(recipeData, token);
@@ -317,7 +319,7 @@ function CrearRecetaPage() {
               {ingredientes.map((item) => (
                 <div key={item.id} className="flex items-center space-x-2">
 
-                  {/* 🔥 CONTROLES DE MOVER INGREDIENTES 🔥 */}
+                  {/* CONTROLES DE MOVER INGREDIENTES */}
                   <div className="flex flex-col text-gray-400">
                     <button onClick={() => moverIngrediente(item.id, -1)}>
                       <ChevronUp size={18} className="hover:text-[#FFAF45] cursor-pointer" />
@@ -328,10 +330,40 @@ function CrearRecetaPage() {
                     </button>
                   </div>
 
+                  {/* Campo de Ingrediente - MÁS GRANDE */}
                   <InputField
                     placeholder="Ingrediente"
                     value={item.text}
                     onChange={(e) => actualizarIngrediente(item.id, e.target.value)}
+                    width="flex-1"
+                  />
+
+                  {/* Campo de Cantidad */}
+                  <InputField
+                    placeholder="Cantidad"
+                    value={item.cantidad || ''}
+                    onChange={(e) => {
+                      const updated = ingredientes.map(i => 
+                        i.id === item.id ? {...i, cantidad: e.target.value} : i
+                      );
+                      setIngredientes(updated);
+                      markAsChanged();
+                    }}
+                    width="w-24"
+                  />
+
+                  {/* Campo de Unidad */}
+                  <InputField
+                    placeholder="Unidad"
+                    value={item.unidad || ''}
+                    onChange={(e) => {
+                      const updated = ingredientes.map(i => 
+                        i.id === item.id ? {...i, unidad: e.target.value} : i
+                      );
+                      setIngredientes(updated);
+                      markAsChanged();
+                    }}
+                    width="w-28"
                   />
 
                   <button
@@ -362,11 +394,26 @@ function CrearRecetaPage() {
             <div className="flex items-center gap-4 pr-6">
               <label className="text-gray-700 font-medium">Tiempo:</label>
               <InputField
-                placeholder="Ej: 1h 30min"
+                placeholder="Ej: 120 min"
                 width="w-32"
                 value={tiempo}
                 onChange={(e) => setTiempo(e.target.value)}
               />
+              <span className="font-semibold text-gray-700 ml-4">Dificultad:</span>
+              <select
+                value={dificultad}
+                onChange={(e) => {
+                  setDificultad(e.target.value);
+                  markAsChanged();
+                }}
+                className="px-3 py-2 bg-orange-50/70 border-b-2 border-orange-200 focus:outline-none focus:border-[#FFAF45] rounded-lg"
+                style={{ color: dificultad ? '#374151' : '#9ca3af' }}
+              >
+                <option value="">Seleccionar</option>
+                <option value="Fácil">Fácil</option>
+                <option value="Media">Media</option>
+                <option value="Difícil">Difícil</option>
+              </select>
             </div>
 
             <div className="space-y-4">
@@ -435,7 +482,7 @@ function CrearRecetaPage() {
 
       </div>
 
-      {/* Modal de confirmaci\u00f3n de salida */}
+      {/* Modal de confirmación de salida */}
       {showExitModal && (
         <ConfirmacionSalida
           onClose={handleCancelExit}

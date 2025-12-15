@@ -1,7 +1,8 @@
 import { useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import YapaLogo from '../../assets/logo.png';
-import { getRecomendacionesDelDia } from '../../api/recipesApi';
+import { getRecomendacionesDelDia, getAllRecipes } from '../../api/recipesApi';
+import Trie from '../../utils/Trie';
 
 // Array de frases inspiradoras
 const FRASES_DEL_DIA = [
@@ -68,21 +69,75 @@ function Homepage() {
   const [recomendaciones, setRecomendaciones] = useState([]);
   const [fraseDelDia, setFraseDelDia] = useState(() => obtenerFraseAleatoria());
 
+  // Search & Autocomplete State
+  const [searchTerm, setSearchTerm] = useState("");
+  const [suggestion, setSuggestion] = useState("");
+  const trieRef = useRef(new Trie());
+
   useEffect(() => {
-    const fetchRecomendaciones = async () => {
+    const fetchData = async () => {
       try {
-        const data = await getRecomendacionesDelDia();
-        setRecomendaciones(data);
+        // 1. Fetch recomendaciones
+        const recsData = await getRecomendacionesDelDia();
+        setRecomendaciones(recsData);
+
+        // 2. Fetch ALL recipes for autocomplete
+        const allRecipes = await getAllRecipes();
+
+        // 3. Sort by date_register ASC (Oldest first) to respect priority rule
+        // Assuming date_register is ISO string. String comparison works for ISO.
+        allRecipes.sort((a, b) => (a.date_register > b.date_register ? 1 : -1));
+
+        // 4. Build Trie
+        allRecipes.forEach(recipe => {
+          if (recipe.title) {
+            trieRef.current.insert(recipe.title);
+          }
+        });
+
       } catch (error) {
-        console.error('Error cargando recomendaciones:', error);
+        console.error('Error cargando datos:', error);
       }
     };
 
-    fetchRecomendaciones();
+    fetchData();
   }, []);
 
+  const handleSearchChange = (e) => {
+    const val = e.target.value;
+    setSearchTerm(val);
+
+    if (val.length > 0) {
+      const found = trieRef.current.search(val);
+      // Only show suggestion if it starts with the input (case insensitive check just in case)
+      if (found && found.toLowerCase().startsWith(val.toLowerCase()) && found.toLowerCase() !== val.toLowerCase()) {
+        setSuggestion(found);
+      } else {
+        setSuggestion("");
+      }
+    } else {
+      setSuggestion("");
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    if ((e.key === 'Tab' || e.key === 'ArrowRight') && suggestion) {
+      e.preventDefault();
+      setSearchTerm(suggestion);
+      setSuggestion("");
+    }
+    if (e.key === 'Enter') {
+      handleVerRecetas();
+    }
+  };
+
   const handleVerRecetas = () => {
-    navigate("/recetas");
+    // Navigate with search term if present
+    if (searchTerm.trim()) {
+      navigate(`/recetas?search=${encodeURIComponent(searchTerm.trim())}`);
+    } else {
+      navigate("/recetas");
+    }
   };
 
   const handleConsultar = () => {
@@ -127,16 +182,16 @@ function Homepage() {
           <button
             className="px-6 py-1.5 text-white font-semibold rounded-lg shadow-md transition duration-150 hover:brightness-110 hover:shadow-lg cursor-pointer"
             style={{ backgroundColor: primaryColor }}
-            onClick={handleVerRecetas}
+            onClick={() => navigate("/recetas")}
           >
             Ver Recetas
           </button>
         </div>
 
         <div className="flex items-center space-x-4 mb-4 w-full max-w-xl">
-          <div className="relative flex items-center border border-gray-400 rounded-lg overflow-hidden flex-grow">
+          <div className="relative flex items-center border border-gray-400 rounded-lg overflow-hidden flex-grow bg-white">
             <svg
-              className="w-5 h-5 text-gray-500 ml-3"
+              className="w-5 h-5 text-gray-500 ml-3 z-10"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -149,11 +204,27 @@ function Homepage() {
                 d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
               />
             </svg>
-            <input
-              type="text"
-              placeholder="Busca por nombre de la receta o ingredientes"
-              className="py-1.5 pl-2 pr-4 w-full focus:outline-none text-gray-700 placeholder-gray-500 bg-white"
-            />
+
+            <div className="relative w-full">
+              {/* Ghost Text Input (Background) */}
+              <input
+                type="text"
+                value={suggestion}
+                readOnly
+                className="absolute top-0 left-0 w-full py-1.5 pl-2 pr-4 focus:outline-none text-gray-400 bg-transparent pointer-events-none"
+                style={{ zIndex: 0 }}
+              />
+
+              {/* Actual Input (Foreground) */}
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={handleSearchChange}
+                onKeyDown={handleKeyDown}
+                placeholder="Busca por nombre de la receta o ingredientes"
+                className="relative z-10 w-full py-1.5 pl-2 pr-4 focus:outline-none text-gray-700 placeholder-gray-500 bg-transparent"
+              />
+            </div>
           </div>
           <button
             className="px-8 py-1.5 text-white font-semibold rounded-lg shadow-md transition duration-150 hover:brightness-110 hover:shadow-lg cursor-pointer"

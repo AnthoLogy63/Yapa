@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Login from "../modals/Login";
 import { useAuth } from "../../context/AuthContext";
+import YapaLogo from "../../assets/logo.png";
 
 function Navbar() {
   const location = useLocation();
@@ -90,6 +91,15 @@ function Navbar() {
   return (
     <div className="flex items-center justify-between min-h-18 px-10 bg-white w-full mx-auto mb-3">
       <div className="flex items-center space-x-3">
+        {!isHomepage && (
+          <img
+            src={YapaLogo}
+            alt="Logo Yapa"
+            className="h-12 w-auto cursor-pointer"
+            onClick={() => navigate('/')}
+          />
+        )}
+
         {showBack && (
           <button
             onClick={handleBack}

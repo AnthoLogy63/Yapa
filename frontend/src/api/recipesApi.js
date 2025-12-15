@@ -12,10 +12,14 @@ export const getRecomendacionesDelDia = async () => {
   }
 };
 
-export const getAllRecipes = async (search = '') => {
+export const getAllRecipes = async (search = '', withIngredients = [], withoutIngredients = []) => {
   try {
-    const url = search ? `${API_URL}?search=${encodeURIComponent(search)}` : API_URL;
-    const res = await axios.get(url);
+    const params = new URLSearchParams();
+    if (search) params.append('search', search);
+    if (withIngredients.length > 0) params.append('with_ingredients', withIngredients.join(','));
+    if (withoutIngredients.length > 0) params.append('without_ingredients', withoutIngredients.join(','));
+
+    const res = await axios.get(`${API_URL}?${params.toString()}`);
     return res.data;
   } catch (err) {
     console.error('Error obteniendo recetas:', err);
@@ -52,6 +56,20 @@ export const createRecipe = async (recipeData, token) => {
     // Agregar imagen si existe
     if (recipeData.image) {
       formData.append('image', recipeData.image);
+    }
+
+    // Agregar ingredientes (lista de strings)
+    if (recipeData.ingredients && Array.isArray(recipeData.ingredients)) {
+      recipeData.ingredients.forEach(ing => {
+        formData.append('ingredients_input', ing);
+      });
+    }
+
+    // Agregar pasos (lista de strings)
+    if (recipeData.steps && Array.isArray(recipeData.steps)) {
+      recipeData.steps.forEach(step => {
+        formData.append('steps_input', step);
+      });
     }
 
     const res = await axios.post(API_URL, formData, {
