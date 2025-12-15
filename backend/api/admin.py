@@ -56,6 +56,21 @@ class RecipeAdmin(admin.ModelAdmin):
     list_filter = ("category", "difficulty", "is_active")
     search_fields = ("title", "description")
     autocomplete_fields = ("user", "category")
+    readonly_fields = ("date_register", "date_update", "visualizations")
+    fields = (
+        "title",
+        "description",
+        "user",
+        "category",
+        "preparation_time",
+        "difficulty",
+        "portions",
+        "image",
+        "is_active",
+        "date_register",
+        "date_update",
+        "visualizations",
+    )
     inlines = [StepRecipeInline, RecipeIngredientInline]  # ⬅️ aquí ya están definidos arriba
 
 

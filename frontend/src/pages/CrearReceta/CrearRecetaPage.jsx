@@ -1,9 +1,9 @@
 import React from 'react';
 import { Trash2, ChevronUp, ChevronDown, Plus } from 'lucide-react';
 import { useAuth } from "../../context/AuthContext";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import ConfirmacionSalida from '../../components/modals/ConfirmacionSalida';
-import { createRecipe } from '../../api/recipesApi';
+import { createRecipe, getRecipeById, updateRecipe } from '../../api/recipesApi';
 
 const InputField = ({ placeholder, value, onChange, width = 'full', type = 'text', className = '' }) => (
   <input
@@ -22,6 +22,8 @@ const InputField = ({ placeholder, value, onChange, width = 'full', type = 'text
 function CrearRecetaPage() {
   const { user, isLogged, token } = useAuth();
   const navigate = useNavigate();
+  const { id } = useParams(); // Obtener ID de la URL si existe
+  const isEditMode = Boolean(id); // Determinar si estamos editando
 
   // -------- MODAL DE CONFIRMACIÓN --------
   const [showExitModal, setShowExitModal] = React.useState(false);
@@ -117,7 +119,63 @@ function CrearRecetaPage() {
   };
 
   // -------- DETECCI\u00d3N DE CAMBIOS --------
+
   const markAsChanged = () => setHasChanges(true);
+
+  // -------- CARGAR RECETA EN MODO EDICIÓN --------
+  React.useEffect(() => {
+    const loadRecipe = async () => {
+      if (isEditMode && id) {
+        try {
+          const recipeData = await getRecipeById(id);
+
+          // Cargar datos básicos
+          setTitulo(recipeData.title || '');
+          setDescripcion(recipeData.description || '');
+          setComensales(recipeData.portions?.toString() || '');
+          setTiempo(recipeData.preparation_time?.toString() || '');
+          setDificultad(recipeData.difficulty || '');
+          setCategoria(recipeData.category?.id?.toString() || '');
+
+          // Cargar imagen si existe
+          if (recipeData.image) {
+            setPreviewImage(recipeData.image);
+          }
+
+          // Cargar ingredientes
+          if (recipeData.recipe_ingredients && recipeData.recipe_ingredients.length > 0) {
+            const loadedIngredientes = recipeData.recipe_ingredients.map((ri, index) => ({
+              id: index + 1,
+              cantidad: ri.amount?.toString() || '',
+              unidad: ri.unit || '',
+              text: ri.ingredient?.name || ''
+            }));
+            setIngredientes(loadedIngredientes);
+            idRef.current = loadedIngredientes.length + 1;
+          }
+
+          // Cargar pasos
+          if (recipeData.steps && recipeData.steps.length > 0) {
+            const loadedPasos = recipeData.steps.map((step, index) => ({
+              id: index + 1,
+              text: step.description || ''
+            }));
+            setPasos(loadedPasos);
+            idRef.current = Math.max(idRef.current, loadedPasos.length + 1);
+          }
+
+          setHasChanges(false);
+        } catch (error) {
+          console.error('Error cargando receta:', error);
+          alert('Error al cargar la receta para editar');
+          navigate('/mis-recetas');
+        }
+      }
+    };
+
+    loadRecipe();
+  }, [id, isEditMode, navigate]);
+
 
   // -------- REGISTRAR FUNCI\u00d3N GLOBAL PARA NAVBAR --------
   React.useEffect(() => {
@@ -209,17 +267,26 @@ function CrearRecetaPage() {
         steps: pasos.map(p => p.text).filter(t => t.trim() !== ''),
       };
 
-      const response = await createRecipe(recipeData, token);
 
-      alert('¡Receta creada exitosamente!');
+      let response;
+      if (isEditMode) {
+        // Modo edición: actualizar receta existente
+        response = await updateRecipe(id, recipeData, token);
+        alert('¡Receta actualizada exitosamente!');
+      } else {
+        // Modo creación: crear nueva receta
+        response = await createRecipe(recipeData, token);
+        alert('¡Receta creada exitosamente!');
+      }
+
       setHasChanges(false);
 
-      // Redirigir a la página de detalle de la receta o a mis recetas
+      // Redirigir a la página de detalle de la receta
       navigate(`/recetas/${response.id}`);
 
     } catch (error) {
-      console.error('Error al crear la receta:', error);
-      alert('Hubo un error al crear la receta. Por favor intenta nuevamente.');
+      console.error('Error al guardar la receta:', error);
+      alert(`Hubo un error al ${isEditMode ? 'actualizar' : 'crear'} la receta. Por favor intenta nuevamente.`);
     } finally {
       setIsSubmitting(false);
     }
@@ -343,8 +410,8 @@ function CrearRecetaPage() {
                     placeholder="Cantidad"
                     value={item.cantidad || ''}
                     onChange={(e) => {
-                      const updated = ingredientes.map(i => 
-                        i.id === item.id ? {...i, cantidad: e.target.value} : i
+                      const updated = ingredientes.map(i =>
+                        i.id === item.id ? { ...i, cantidad: e.target.value } : i
                       );
                       setIngredientes(updated);
                       markAsChanged();
@@ -357,8 +424,8 @@ function CrearRecetaPage() {
                     placeholder="Unidad"
                     value={item.unidad || ''}
                     onChange={(e) => {
-                      const updated = ingredientes.map(i => 
-                        i.id === item.id ? {...i, unidad: e.target.value} : i
+                      const updated = ingredientes.map(i =>
+                        i.id === item.id ? { ...i, unidad: e.target.value } : i
                       );
                       setIngredientes(updated);
                       markAsChanged();
@@ -476,7 +543,7 @@ function CrearRecetaPage() {
             disabled={isSubmitting || !isLogged}
             className="px-8 py-3 bg-[#F99F3F] text-white font-semibold rounded-lg shadow-md hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed transition"
           >
-            {isSubmitting ? 'Guardando...' : 'Guardar Receta'}
+            {isSubmitting ? 'Guardando...' : (isEditMode ? 'Actualizar Receta' : 'Guardar Receta')}
           </button>
         </div>
 

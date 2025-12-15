@@ -15,6 +15,7 @@ function AppRouter() {
       <Route path="/recetas" element={<Recetas />} />
       <Route path="/recetas/:id" element={<RecetasDetail />} />
       <Route path="/crear-receta" element={<CrearRecetaPage />} />
+      <Route path="/editar-receta/:id" element={<CrearRecetaPage />} />
       <Route path="/mis-recetas" element={<MisRecetasPage />} />
       <Route path="/favoritos" element={<FavoritosPage />} />
       <Route path="/refri" element={<Refri />} />

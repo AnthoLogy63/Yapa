@@ -1,37 +1,44 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
+import { getUserRecipes } from "../../api/recipesApi";
 
 function MisRecetasPage() {
   const navigate = useNavigate();
+  const { token } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
+  const [misRecetas, setMisRecetas] = useState([]);
+  const [filteredRecetas, setFilteredRecetas] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Datos de ejemplo - reemplazar con datos reales del backend
-  const misRecetas = [
-    {
-      id: 1,
-      titulo: "COSTILLAR DORADO",
-      descripcion: "El Costillar Dorado son costillas asadas con glaseado dorado, sabor intenso y jugosas, ideales para compartir y disfrutar en cualquier ocasión.",
-      tiempo: "30 minutos",
-      porciones: 2,
-      imagen: null
-    },
-    {
-      id: 2,
-      titulo: "COSTILLAR DORADO",
-      descripcion: "El Costillar Dorado son costillas asadas con glaseado dorado, sabor intenso y jugosas, ideales para compartir y disfrutar en cualquier ocasión.",
-      tiempo: "30 minutos",
-      porciones: 2,
-      imagen: null
-    },
-    {
-      id: 3,
-      titulo: "COSTILLAR DORADO",
-      descripcion: "El Costillar Dorado son costillas asadas con glaseado dorado, sabor intenso y jugosas, ideales para compartir y disfrutar en cualquier ocasión.",
-      tiempo: "30 minutos",
-      porciones: 2,
-      imagen: null
+  useEffect(() => {
+    const fetchMyRecipes = async () => {
+      try {
+        if (token) {
+          const data = await getUserRecipes(token);
+          setMisRecetas(data);
+          setFilteredRecetas(data);
+        }
+      } catch (error) {
+        console.error("Error cargando mis recetas:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMyRecipes();
+  }, [token]);
+
+  useEffect(() => {
+    if (searchTerm.trim() === "") {
+      setFilteredRecetas(misRecetas);
+    } else {
+      const filtered = misRecetas.filter(receta =>
+        receta.title.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      setFilteredRecetas(filtered);
     }
-  ];
+  }, [searchTerm, misRecetas]);
 
   const handleEdit = (id) => {
     navigate(`/editar-receta/${id}`);
@@ -78,77 +85,86 @@ function MisRecetasPage() {
         </button>
       </div>
 
+      {/* Estado de carga */}
+      {loading && (
+        <div className="text-center py-12">
+          <p className="text-gray-500 text-lg">Cargando recetas...</p>
+        </div>
+      )}
+
       {/* Lista de recetas */}
-      <div className="space-y-6 max-w-4xl">
-        {misRecetas.map((receta) => (
-          <div
-            key={receta.id}
-            className="w-full bg-[#FFF8E7] rounded-xl shadow-sm flex overflow-hidden transition transform hover:shadow-md"
-            style={{ border: '1px solid rgb(200,200,200)' }}
-          >
-            {/* Imagen */}
-            <div className="flex-shrink-0 w-[250px] h-[180px] bg-gradient-to-br from-orange-200 to-orange-300 flex items-center justify-center">
-              {receta.imagen ? (
-                <img src={receta.imagen} alt={receta.titulo} className="w-full h-full object-cover" />
-              ) : (
-                <svg className="w-16 h-16 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-              )}
-            </div>
+      {!loading && filteredRecetas.length > 0 && (
+        <div className="space-y-6 max-w-4xl">
+          {filteredRecetas.map((receta) => (
+            <div
+              key={receta.id}
+              className="w-full bg-[#FFF8E7] rounded-xl shadow-sm flex overflow-hidden transition transform hover:shadow-md"
+              style={{ border: '1px solid rgb(200,200,200)' }}
+            >
+              {/* Imagen */}
+              <div className="flex-shrink-0 w-[250px] h-[180px] bg-gradient-to-br from-orange-200 to-orange-300 flex items-center justify-center">
+                {receta.image ? (
+                  <img src={receta.image} alt={receta.title} className="w-full h-full object-cover" />
+                ) : (
+                  <svg className="w-16 h-16 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                )}
+              </div>
 
-            {/* Contenido */}
-            <div className="flex-1 p-5 flex flex-col justify-between">
-              <div>
-                <h3 className="font-bold text-lg text-gray-800 mb-2">
-                  {receta.titulo}
-                </h3>
+              {/* Contenido */}
+              <div className="flex-1 p-5 flex flex-col justify-between">
+                <div>
+                  <h3 className="font-bold text-lg text-gray-800 mb-2">
+                    {receta.title}
+                  </h3>
 
-                <p className="text-gray-700 text-sm leading-relaxed mb-3">
-                  {receta.descripcion}
-                </p>
+                  <p className="text-gray-700 text-sm leading-relaxed mb-3">
+                    {receta.description}
+                  </p>
 
-                <div className="flex items-center gap-6 text-sm text-gray-600">
-                  <span className="flex items-center gap-1">
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
-                    </svg>
-                    {receta.tiempo}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                    </svg>
-                    {receta.porciones} porciones
-                  </span>
+                  <div className="flex items-center gap-6 text-sm text-gray-600">
+                    <span className="flex items-center gap-1">
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                      </svg>
+                      {receta.preparation_time} min
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                      </svg>
+                      {receta.portions} porciones
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Botones de acción */}
-            <div className="flex flex-col bg-[#FFF8E7]" style={{ borderLeft: '1px solid #C8C8C8' }}>
-              <button
-                onClick={() => handleEdit(receta.id)}
-                className="flex-1 px-8 py-4 text-gray-800 font-medium hover:bg-orange-50 transition cursor-pointer flex items-center justify-center"
-              >
-                Editar
-              </button>
-              <div className="h-px bg-gray-300 mx-4"></div>
-              <button
-                onClick={() => handleDelete(receta.id)}
-                className="flex-1 px-8 py-4 text-gray-800 font-medium hover:bg-orange-50 transition cursor-pointer flex items-center justify-center"
-              >
-                Eliminar
-              </button>
+              {/* Botones de acción */}
+              <div className="flex flex-col bg-[#FFF8E7]" style={{ borderLeft: '1px solid #C8C8C8' }}>
+                <button
+                  onClick={() => handleEdit(receta.id)}
+                  className="flex-1 px-8 py-4 text-gray-800 font-medium hover:bg-orange-50 transition cursor-pointer flex items-center justify-center"
+                >
+                  Editar
+                </button>
+                <div className="h-px bg-gray-300 mx-4"></div>
+                <button
+                  onClick={() => handleDelete(receta.id)}
+                  className="flex-1 px-8 py-4 text-gray-800 font-medium hover:bg-orange-50 transition cursor-pointer flex items-center justify-center"
+                >
+                  Eliminar
+                </button>
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       {/* Mensaje si no hay recetas */}
-      {misRecetas.length === 0 && (
+      {!loading && misRecetas.length === 0 && (
         <div className="text-center py-12">
-          <p className="text-gray-500 text-lg">No tienes recetas guardadas aún</p>
+          <p className="text-gray-500 text-lg">Usted no tiene recetas creadas</p>
           <button
             onClick={() => navigate('/crear-receta')}
             className="mt-4 px-6 py-2 text-white font-semibold rounded-lg shadow-md hover:brightness-110 cursor-pointer transition"

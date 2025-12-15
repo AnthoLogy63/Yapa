@@ -86,3 +86,66 @@ export const createRecipe = async (recipeData, token) => {
     throw err;
   }
 };
+
+export const getUserRecipes = async (token) => {
+  try {
+    const res = await axios.get(`${API_URL}my-recipes/`, {
+      headers: {
+        'Authorization': `Token ${token}`,
+      },
+    });
+    return res.data;
+  } catch (err) {
+    console.error('Error obteniendo recetas del usuario:', err);
+    throw err;
+  }
+};
+
+export const updateRecipe = async (id, recipeData, token) => {
+  try {
+    const formData = new FormData();
+
+    // Agregar campos básicos
+    formData.append('title', recipeData.title);
+    formData.append('description', recipeData.description || '');
+    formData.append('preparation_time', recipeData.preparation_time);
+    formData.append('difficulty', recipeData.difficulty || 'Media');
+    formData.append('portions', recipeData.portions);
+
+    // Agregar categoría si existe
+    if (recipeData.category) {
+      formData.append('category', recipeData.category);
+    }
+
+    // Agregar imagen si existe (solo si es un archivo nuevo)
+    if (recipeData.image && recipeData.image instanceof File) {
+      formData.append('image', recipeData.image);
+    }
+
+    // Agregar ingredientes (lista de strings)
+    if (recipeData.ingredients && Array.isArray(recipeData.ingredients)) {
+      recipeData.ingredients.forEach(ing => {
+        formData.append('ingredients_input', ing);
+      });
+    }
+
+    // Agregar pasos (lista de strings)
+    if (recipeData.steps && Array.isArray(recipeData.steps)) {
+      recipeData.steps.forEach(step => {
+        formData.append('steps_input', step);
+      });
+    }
+
+    const res = await axios.put(`${API_URL}${id}/`, formData, {
+      headers: {
+        'Authorization': `Token ${token}`,
+      },
+    });
+
+    return res.data;
+  } catch (err) {
+    console.error('Error actualizando receta:', err);
+    console.error('Detalles del error:', err.response?.data);
+    throw err;
+  }
+};
