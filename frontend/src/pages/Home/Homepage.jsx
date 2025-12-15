@@ -3,10 +3,70 @@ import { useState, useEffect } from "react";
 import YapaLogo from '../../assets/logo.png';
 import { getRecomendacionesDelDia } from '../../api/recipesApi';
 
+// Array de frases inspiradoras
+const FRASES_DEL_DIA = [
+  "Cocinar es una forma de decir te quiero sin palabras.",
+  "En cada receta hay un poco de amor.",
+  "La mejor comida es la que se hace con cariño.",
+  "Donde hay comida casera, hay hogar.",
+  "Hoy cocinas más que alimentos: cocinas momentos.",
+  "El secreto de una buena receta siempre es el amor.",
+  "Cocinar para otros es un acto de generosidad.",
+  "La cocina es el corazón de la casa.",
+  "Con paciencia y sazón, todo sale mejor.",
+  "No es solo comida, es cuidado.",
+  "Una mamá en la cocina crea recuerdos eternos.",
+  "Cada plato tiene su historia.",
+  "Cocinar también es una forma de abrazar.",
+  "El mejor ingrediente siempre es el amor.",
+  "Cocinar calma, une y alegra.",
+  "Hoy tu comida alimenta cuerpo y alma.",
+  "La magia comienza cuando prendes la cocina.",
+  "No hay receta perfecta, solo hecha con cariño.",
+  "Cocinar es transformar ingredientes en felicidad.",
+  "En la cocina se mezclan sabores y emociones.",
+  "Una comida casera siempre sabe mejor.",
+  "Cocinar es un arte que nace del corazón.",
+  "La paciencia es el mejor condimento.",
+  "Cada plato es una muestra de cuidado.",
+  "Cocinar es pensar en los demás.",
+  "En cada olla hay dedicación.",
+  "La cocina también es un lugar de amor.",
+  "Cocinar es crear momentos que se recuerdan.",
+  "No importa el menú, importa la intención.",
+  "Cocinar es un gesto diario de amor.",
+  "Una madre cocina con el corazón.",
+  "La mejor receta es la que une a la familia.",
+  "Cocinar es una forma de agradecer.",
+  "Donde hay comida hecha en casa, hay calor humano.",
+  "Cocinar también es cuidarte a ti.",
+  "Cada plato cuenta una historia de hogar.",
+  "Cocinar es regalar tiempo.",
+  "El amor se nota en el sabor.",
+  "Cocinar es una muestra silenciosa de amor.",
+  "La cocina guarda los mejores recuerdos.",
+  "Un plato hecho con cariño siempre reconforta.",
+  "Cocinar es crear bienestar.",
+  "En la cocina se siembra amor todos los días.",
+  "Cocinar es un acto de paciencia y dedicación.",
+  "El hogar se siente en la comida.",
+  "Cocinar es pensar en quienes amas.",
+  "Cada receta es una oportunidad de dar amor.",
+  "La comida hecha en casa tiene alma.",
+  "Hoy, como siempre, cocina con amor ❤️"
+];
+
+// Función para obtener una frase aleatoria
+const obtenerFraseAleatoria = () => {
+  const indiceAleatorio = Math.floor(Math.random() * FRASES_DEL_DIA.length);
+  return FRASES_DEL_DIA[indiceAleatorio];
+};
+
 function Homepage() {
   const primaryColor = "#F99F3F";
   const navigate = useNavigate();
   const [recomendaciones, setRecomendaciones] = useState([]);
+  const [fraseDelDia, setFraseDelDia] = useState(() => obtenerFraseAleatoria());
 
   useEffect(() => {
     const fetchRecomendaciones = async () => {
@@ -41,11 +101,8 @@ function Homepage() {
           style={{ transform: "rotate(-5deg)" }}
         >
           <div className="absolute inset-0 flex items-center justify-center p-4">
-            <p className="text-gray-700 font-semibold text-center leading-snug">
-              Buenos días, este<br />
-              día es tuyo, no<br />
-              permitas que nadie<br />
-              te lo arruine
+            <p className="text-gray-700 font-semibold text-center leading-snug text-sm">
+              {fraseDelDia}
             </p>
           </div>
 
