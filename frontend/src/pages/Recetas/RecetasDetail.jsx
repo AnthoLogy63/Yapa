@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getRecipeById, deleteRecipe } from "../../api/recipesApi";
+import { getFavorites, addToFavorites, removeFromFavorites } from "../../api/favoritesApi";
 import { useAuth } from "../../context/AuthContext";
 import ConfirmarEliminar from "../../components/modals/ConfirmarEliminar";
 
@@ -14,12 +15,24 @@ function RecetasDetailPage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [isFavorited, setIsFavorited] = useState(false);
+  const [favoriteId, setFavoriteId] = useState(null);
 
   useEffect(() => {
     const fetchRecipe = async () => {
       try {
         const data = await getRecipeById(id);
         setRecipe(data);
+        
+        // Verificar si está en favoritos
+        if (token) {
+          const favorites = await getFavorites(token);
+          const favorite = favorites.find(fav => fav.recipe.id === parseInt(id));
+          if (favorite) {
+            setIsFavorited(true);
+            setFavoriteId(favorite.id);
+          }
+        }
       } catch (error) {
         console.error("Error fetching recipe:", error);
       } finally {
@@ -28,7 +41,7 @@ function RecetasDetailPage() {
     };
 
     fetchRecipe();
-  }, [id]);
+  }, [id, token]);
 
   const handlePrint = () => {
     window.print();
@@ -60,6 +73,25 @@ function RecetasDetailPage() {
 
   const handleCancelDelete = () => {
     setShowDeleteModal(false);
+  };
+
+  const handleToggleFavorite = async () => {
+    try {
+      if (isFavorited && favoriteId) {
+        // Quitar de favoritos
+        await removeFromFavorites(favoriteId, token);
+        setIsFavorited(false);
+        setFavoriteId(null);
+      } else {
+        // Agregar a favoritos
+        const result = await addToFavorites(parseInt(id), token);
+        setIsFavorited(true);
+        setFavoriteId(result.id);
+      }
+    } catch (error) {
+      console.error('Error toggling favorite:', error);
+      alert('Error al actualizar favoritos');
+    }
   };
 
   if (loading) {
@@ -116,16 +148,36 @@ function RecetasDetailPage() {
                 {recipe.description}
               </p>
 
-              {/* Botón Imprimir */}
-              <button
-                onClick={handlePrint}
-                className="flex items-center gap-2 px-4 py-2 border-2 border-gray-400 rounded-lg hover:bg-gray-50 transition cursor-pointer"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                </svg>
-                Imprimir
-              </button>
+              {/* Botones Arriba */}
+              <div className="flex gap-3 flex-wrap">
+                {/* Botón Guardar en Favoritos */}
+                {user && token && (
+                  <button
+                    onClick={handleToggleFavorite}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg border-2 transition cursor-pointer ${
+                      isFavorited
+                        ? 'bg-red-500 text-white border-red-500'
+                        : 'border-gray-400 text-gray-700 hover:bg-gray-50'
+                    }`}
+                  >
+                    <svg className="w-5 h-5" fill={isFavorited ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                    </svg>
+                    {isFavorited ? 'En Favoritos' : 'Guardar'}
+                  </button>
+                )}
+
+                {/* Botón Imprimir */}
+                <button
+                  onClick={handlePrint}
+                  className="flex items-center gap-2 px-4 py-2 border-2 border-gray-400 rounded-lg hover:bg-gray-50 transition cursor-pointer"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                  </svg>
+                  Imprimir
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -195,19 +247,25 @@ function RecetasDetailPage() {
         </div>
 
         {/* Botones inferiores */}
-        <div className="flex justify-center gap-4 mt-12">
-          <button
-            onClick={handleSave}
-            className={`flex items-center gap-2 px-6 py-3 rounded-lg border-2 transition cursor-pointer ${isSaved
-              ? 'bg-orange-500 text-white border-orange-500'
-              : 'border-gray-400 text-gray-700 hover:bg-gray-50'
+        <div className="flex justify-center gap-4 mt-12 flex-wrap">
+          {/* Botón Guardar en Favoritos */}
+          {user && token && (
+            <button
+              onClick={handleToggleFavorite}
+              className={`flex items-center gap-2 px-6 py-3 rounded-lg border-2 transition cursor-pointer ${
+                isFavorited
+                  ? 'bg-red-500 text-white border-red-500'
+                  : 'border-gray-400 text-gray-700 hover:bg-gray-50'
               }`}
-          >
-            <svg className="w-5 h-5" fill={isSaved ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-            </svg>
-            {isSaved ? 'Guardado' : 'Guardar'}
-          </button>
+            >
+              <svg className="w-5 h-5" fill={isFavorited ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              </svg>
+              {isFavorited ? 'En Favoritos' : 'Guardar'}
+            </button>
+          )}
+
+          
 
           {/* Botón Editar y Eliminar - Solo para el autor */}
           {user && recipe && recipe.user && user.id === recipe.user.id && (
