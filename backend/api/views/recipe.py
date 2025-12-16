@@ -112,6 +112,19 @@ class RecipeViewSet(viewsets.ModelViewSet):
         """Asignar el usuario autenticado como creador de la receta y activarla por defecto"""
         serializer.save(user=self.request.user, is_active=True)
     
+    def perform_destroy(self, instance):
+        """
+        Solo el creador puede eliminar su receta.
+        Marcamos como inactiva en lugar de eliminar completamente.
+        """
+        if instance.user != self.request.user:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("Solo el creador puede eliminar esta receta.")
+        
+        # En lugar de eliminar, desactivamos
+        instance.is_active = False
+        instance.save()
+    
     @extend_schema(
         tags=['Recetas'],
         summary='Obtener recomendaciones de recetas',

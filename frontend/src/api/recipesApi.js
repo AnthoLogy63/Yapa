@@ -149,3 +149,26 @@ export const updateRecipe = async (id, recipeData, token) => {
     throw err;
   }
 };
+
+export const deleteRecipe = async (id, token) => {
+  try {
+    console.log('deleteRecipe - ID:', id);
+    console.log('deleteRecipe - Token:', token);
+    
+    if (!token) {
+      throw new Error('Token no disponible. Por favor inicia sesión.');
+    }
+
+    const res = await axios.delete(`${API_URL}${id}/`, {
+      headers: {
+        'Authorization': `Token ${token}`,
+      },
+    });
+    console.log('deleteRecipe - Respuesta:', res.data);
+    return res.data;
+  } catch (err) {
+    console.error('Error eliminando receta:', err);
+    console.error('Detalles del error:', err.response?.data || err.message);
+    throw err;
+  }
+};

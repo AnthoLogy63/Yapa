@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import { getUserRecipes } from "../../api/recipesApi";
+import { getUserRecipes, deleteRecipe } from "../../api/recipesApi";
+import ConfirmarEliminar from "../../components/modals/ConfirmarEliminar";
 
 function MisRecetasPage() {
   const navigate = useNavigate();
@@ -10,6 +11,10 @@ function MisRecetasPage() {
   const [misRecetas, setMisRecetas] = useState([]);
   const [filteredRecetas, setFilteredRecetas] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [recipeToDelete, setRecipeToDelete] = useState(null);
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     const fetchMyRecipes = async () => {
@@ -45,8 +50,35 @@ function MisRecetasPage() {
   };
 
   const handleDelete = (id) => {
-    // Implementar lógica de eliminación
-    console.log("Eliminar receta:", id);
+    setRecipeToDelete(id);
+    setShowDeleteModal(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    setDeleting(true);
+    try {
+      await deleteRecipe(recipeToDelete, token);
+      setShowDeleteModal(false);
+      setShowSuccessMessage(true);
+      
+      // Eliminar de la lista local
+      setMisRecetas(prev => prev.filter(r => r.id !== recipeToDelete));
+      setFilteredRecetas(prev => prev.filter(r => r.id !== recipeToDelete));
+      
+      // Ocultar mensaje después de 2 segundos
+      setTimeout(() => {
+        setShowSuccessMessage(false);
+      }, 2000);
+    } catch (error) {
+      console.error('Error al eliminar receta:', error);
+      alert('Error al eliminar la receta. Intenta de nuevo.');
+      setDeleting(false);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setShowDeleteModal(false);
+    setRecipeToDelete(null);
   };
 
   const handleBuscar = () => {
@@ -172,6 +204,28 @@ function MisRecetasPage() {
           >
             Crear tu primera receta
           </button>
+        </div>
+      )}
+
+      {/* Modal de confirmación de eliminación */}
+      <ConfirmarEliminar
+        isOpen={showDeleteModal}
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
+      />
+
+      {/* Mensaje de éxito */}
+      {showSuccessMessage && (
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl p-8 text-center max-w-md">
+            <div className="flex items-center justify-center w-16 h-16 mx-auto bg-green-100 rounded-full mb-4">
+              <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h2 className="text-xl font-bold text-gray-800 mb-2">¡Receta eliminada!</h2>
+            <p className="text-gray-600">Gracias, sigue cocinando 👨‍🍳</p>
+          </div>
         </div>
       )}
     </div>

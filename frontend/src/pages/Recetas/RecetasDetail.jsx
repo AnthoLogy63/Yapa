@@ -1,15 +1,19 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getRecipeById } from "../../api/recipesApi";
+import { getRecipeById, deleteRecipe } from "../../api/recipesApi";
 import { useAuth } from "../../context/AuthContext";
+import ConfirmarEliminar from "../../components/modals/ConfirmarEliminar";
 
 function RecetasDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const [recipe, setRecipe] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isSaved, setIsSaved] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     const fetchRecipe = async () => {
@@ -32,6 +36,30 @@ function RecetasDetailPage() {
 
   const handleSave = () => {
     setIsSaved(!isSaved);
+  };
+
+  const handleDeleteRecipe = async () => {
+    setDeleting(true);
+    try {
+      console.log('Eliminando receta con ID:', id);
+      console.log('Token:', token);
+      await deleteRecipe(id, token);
+      setShowDeleteModal(false);
+      // Mostrar mensaje de éxito
+      setShowSuccessMessage(true);
+      // Redirigir después de 2 segundos
+      setTimeout(() => {
+        navigate('/mis-recetas');
+      }, 2000);
+    } catch (error) {
+      console.error('Error al eliminar receta:', error);
+      alert('Error al eliminar la receta. Intenta de nuevo.');
+      setDeleting(false);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setShowDeleteModal(false);
   };
 
   if (loading) {
@@ -181,18 +209,31 @@ function RecetasDetailPage() {
             {isSaved ? 'Guardado' : 'Guardar'}
           </button>
 
-          {/* Botón Editar - Solo para el autor */}
+          {/* Botón Editar y Eliminar - Solo para el autor */}
           {user && recipe && recipe.user && user.id === recipe.user.id && (
-            <button
-              onClick={() => navigate(`/editar-receta/${recipe.id}`)}
-              className="flex items-center gap-2 px-6 py-3 text-white rounded-lg transition cursor-pointer hover:brightness-110"
-              style={{ backgroundColor: '#F99F3F' }}
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-              </svg>
-              Editar
-            </button>
+            <>
+              <button
+                onClick={() => navigate(`/editar-receta/${recipe.id}`)}
+                className="flex items-center gap-2 px-6 py-3 text-white rounded-lg transition cursor-pointer hover:brightness-110"
+                style={{ backgroundColor: '#F99F3F' }}
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                Editar
+              </button>
+
+              <button
+                onClick={() => setShowDeleteModal(true)}
+                disabled={deleting}
+                className="flex items-center gap-2 px-6 py-3 bg-red-600 text-white rounded-lg transition cursor-pointer hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                {deleting ? 'Eliminando...' : 'Eliminar'}
+              </button>
+            </>
           )}
 
           <button
@@ -205,6 +246,28 @@ function RecetasDetailPage() {
             Imprimir
           </button>
         </div>
+
+        {/* Modal de confirmación de eliminación */}
+        <ConfirmarEliminar
+          isOpen={showDeleteModal}
+          onConfirm={handleDeleteRecipe}
+          onCancel={handleCancelDelete}
+        />
+
+        {/* Mensaje de éxito */}
+        {showSuccessMessage && (
+          <div className="fixed inset-0 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg shadow-xl p-8 text-center max-w-md">
+              <div className="flex items-center justify-center w-16 h-16 mx-auto bg-green-100 rounded-full mb-4">
+                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <h2 className="text-xl font-bold text-gray-800 mb-2">¡Receta eliminada!</h2>
+              <p className="text-gray-600">Gracias, sigue cocinando 👨‍🍳</p>
+            </div>
+          </div>
+        )}
 
       </div>
     </div>

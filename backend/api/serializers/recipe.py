@@ -214,3 +214,11 @@ class RecipeSerializer(serializers.ModelSerializer):
                     )
 
         return instance
+
+    def delete(self, instance):
+        """
+        Desactiva una receta en lugar de eliminarla completamente.
+        """
+        instance.is_active = False
+        instance.save()
+        return instance
