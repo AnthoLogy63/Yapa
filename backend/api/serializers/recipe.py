@@ -144,3 +144,73 @@ class RecipeSerializer(serializers.ModelSerializer):
             )
 
         return recipe
+
+    def update(self, instance, validated_data):
+        """
+        Actualiza una receta existente.
+        Preserva is_active=True siempre.
+        """
+        ingredients_data = validated_data.pop("ingredients_input", None)
+        steps_data = validated_data.pop("steps_input", None)
+        
+        # Asegurar que is_active siempre sea True
+        validated_data['is_active'] = True
+        
+        # Actualizar campos básicos
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+
+        # Actualizar Ingredientes si se proporcionan
+        if ingredients_data is not None:
+            # Eliminar ingredientes anteriores
+            instance.recipe_ingredients.all().delete()
+            
+            # Regex para parsing
+            pattern = re.compile(r"^(\d+(?:[.,]\d+)?)\s+([a-zA-Z]+)\s+(?:de\s+)?(.+)$", re.IGNORECASE)
+            
+            for index, ing_text in enumerate(ingredients_data):
+                ing_text = ing_text.strip()
+                if not ing_text:
+                    continue
+
+                match = pattern.match(ing_text)
+                if match:
+                    amount_str = match.group(1).replace(",", ".")
+                    amount = float(amount_str)
+                    unit = match.group(2)
+                    name = match.group(3).strip()
+                else:
+                    amount = 1
+                    unit = "unidad"
+                    name = ing_text
+
+                ingredient, created = Ingredient.objects.get_or_create(
+                    name__iexact=name,
+                    defaults={"name": name}
+                )
+                if not created:
+                    ingredient = Ingredient.objects.get(name__iexact=name)
+                
+                RecipeIngredient.objects.create(
+                    recipe=instance,
+                    ingredient=ingredient,
+                    amount=amount,
+                    unit=unit,
+                    order=index + 1
+                )
+
+        # Actualizar Pasos si se proporcionan
+        if steps_data is not None:
+            # Eliminar pasos anteriores
+            instance.steps.all().delete()
+            
+            for index, step_text in enumerate(steps_data):
+                if step_text.strip():
+                    StepRecipe.objects.create(
+                        recipe=instance,
+                        description=step_text.strip(),
+                        estimated_time=None
+                    )
+
+        return instance
