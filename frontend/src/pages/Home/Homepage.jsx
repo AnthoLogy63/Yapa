@@ -4,7 +4,6 @@ import YapaLogo from '../../assets/logo.png';
 import { getRecomendacionesDelDia, getAllRecipes } from '../../api/recipesApi';
 import Trie from '../../utils/Trie';
 
-// Array de frases inspiradoras
 const FRASES_DEL_DIA = [
   "Cocinar es una forma de decir te quiero sin palabras.",
   "En cada receta hay un poco de amor.",
@@ -156,7 +155,7 @@ function Homepage() {
           style={{ transform: "rotate(-5deg)" }}
         >
           <div className="absolute inset-0 flex items-center justify-center p-4">
-            <p className="text-gray-700 font-semibold text-center leading-snug text-sm">
+            <p className="text-gray-700 font-semibold text-center leading-tight text-xl">
               {fraseDelDia}
             </p>
           </div>

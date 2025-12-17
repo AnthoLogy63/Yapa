@@ -144,9 +144,9 @@ function Navbar() {
         )}
       </div>
 
-      <div className="flex items-center space-x-4">
+      <div className="flex items-center space-x-4 ">
         {isLogged && user ? (
-          <div className="relative" ref={dropdownRef}>
+          <div className="relative pt-1.5" ref={dropdownRef}>
             <button onClick={() => setShowDropdown(!showDropdown)} className="focus:outline-none cursor-pointer">
               <img
                 src={
@@ -155,7 +155,7 @@ function Navbar() {
                   `https://ui-avatars.com/api/?name=${user.name || user.email}&background=F99F3F&color=fff`
                 }
                 alt={user.name || "Usuario"}
-                className="w-10 h-10 rounded-full border-2 border-gray-200 cursor-pointer hover:border-orange-300 transition"
+                className="w-11.5 h-11.5 rounded-full border-2 border-gray-200 cursor-pointer hover:border-orange-300 transition"
               />
             </button>
 
