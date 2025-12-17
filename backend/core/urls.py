@@ -28,8 +28,6 @@ urlpatterns = [
     path('accounts/', include('allauth.urls')),  # URLs de allauth (login/logout)
     path('api/auth/google/', GoogleLogin.as_view(), name='google_login'),
 
-    path('admin/', admin.site.urls),
-
     # Archivo OpenAPI 3.0
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
