@@ -21,6 +21,9 @@ urlpatterns = [
     # API URLs (incluye todos los endpoints de la app)
     path('api/', include('api.urls')),
     
+    # AI Chatbot
+    path('api/ai/', include('api.ai.urls')),
+    
     # Autenticación
     path("api-auth/", include("rest_framework.urls")),  
     path("dj-rest-auth/", include("dj_rest_auth.urls")),  
