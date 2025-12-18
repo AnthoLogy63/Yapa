@@ -4,13 +4,13 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from drf_spectacular.utils import extend_schema, OpenApiExample
 from drf_spectacular.types import OpenApiTypes
-from .services import get_gemini_response
+from .services import get_gemini_response_with_intent
 
 
 @extend_schema(
     tags=['IA'],
-    summary='Chat con IA',
-    description='Envía un mensaje al chatbot de IA y recibe una respuesta generada por Gemini.',
+    summary='Chat con IA con detección de intents',
+    description='Envía un mensaje al chatbot de IA y recibe una respuesta estructurada con intent y datos para ejecutar acciones.',
     request={
         'application/json': {
             'type': 'object',
@@ -27,9 +27,17 @@ from .services import get_gemini_response
         200: {
             'type': 'object',
             'properties': {
-                'response': {
+                'intent': {
                     'type': 'string',
-                    'description': 'Respuesta generada por la IA'
+                    'description': 'Tipo de acción: OPEN_RECIPE, ADD_PANTRY_ITEM, ADD_FAVORITE, SEARCH_RECIPES, CHAT'
+                },
+                'data': {
+                    'type': 'object',
+                    'description': 'Datos específicos del intent'
+                },
+                'message': {
+                    'type': 'string',
+                    'description': 'Mensaje amigable para el usuario'
                 }
             }
         },
@@ -39,26 +47,30 @@ from .services import get_gemini_response
     examples=[
         OpenApiExample(
             'Ejemplo de mensaje',
-            value={'message': '¿Qué recetas me recomiendas con pollo?'},
+            value={'message': 'Abre la receta 5'},
             request_only=True,
         ),
         OpenApiExample(
-            'Ejemplo de respuesta',
-            value={'response': 'Te recomiendo probar pollo a la parrilla con hierbas...'},
+            'Ejemplo de respuesta con intent',
+            value={
+                'intent': 'OPEN_RECIPE',
+                'data': {'recipe_id': 5},
+                'message': 'Abriendo la receta número 5...'
+            },
             response_only=True,
         )
     ]
 )
 class ChatView(APIView):
     """
-    Vista para manejar las peticiones del chatbot de IA.
+    Vista para manejar las peticiones del chatbot de IA con detección de intents.
     POST /api/ai/chat/
     """
     permission_classes = [IsAuthenticated]
     
     def post(self, request):
         """
-        Procesa un mensaje del usuario y devuelve la respuesta de Gemini.
+        Procesa un mensaje del usuario y devuelve una respuesta estructurada con intent.
         """
         message = request.data.get('message', '').strip()
         
@@ -69,12 +81,16 @@ class ChatView(APIView):
             )
         
         try:
-            # Obtener respuesta de Gemini
-            ai_response = get_gemini_response(message)
+            # Obtener contexto del usuario
+            user_context = {
+                'user_id': request.user.id,
+                'username': request.user.username
+            }
             
-            return Response({
-                'response': ai_response
-            }, status=status.HTTP_200_OK)
+            # Obtener respuesta con intent de Gemini
+            intent_response = get_gemini_response_with_intent(message, user_context)
+            
+            return Response(intent_response, status=status.HTTP_200_OK)
         
         except Exception as e:
             return Response(
