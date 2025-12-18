@@ -2,7 +2,29 @@ import { useState } from "react";
 import { Search, Plus, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-const CategoryCard = ({ title, ingredients, onAdd, onRemove }) => {
+// Import background images
+import VerdurasBg from './Alimentos/Verduras.jpg';
+import FrutasBg from './Alimentos/Frutas.jpg';
+import GranosBg from './Alimentos/Granos.jpg';
+import LacteosBg from './Alimentos/Lacteos.jpg';
+import ProteinasBg from './Alimentos/Proteinas.jpg';
+import CondimentosBg from './Alimentos/Condimentos.jpg';
+import BebidasBg from './Alimentos/Bebidas.jpg';
+import CerealesBg from './Alimentos/Cereales.jpg';
+
+// Map category names to background images
+const categoryImages = {
+  "Verduras": VerdurasBg,
+  "Frutas": FrutasBg,
+  "Granos y legumbres": GranosBg,
+  "Lácteos": LacteosBg,
+  "Proteínas animales": ProteinasBg,
+  "Condimentos y salsas": CondimentosBg,
+  "Bebidas": BebidasBg,
+  "Cereales y Masas": CerealesBg
+};
+
+const CategoryCard = ({ title, ingredients, onAdd, onRemove, backgroundImage }) => {
   const [isAdding, setIsAdding] = useState(false);
   const [newIngredient, setNewIngredient] = useState({
     cantidad: "",
@@ -30,81 +52,95 @@ const CategoryCard = ({ title, ingredients, onAdd, onRemove }) => {
   };
 
   return (
-    <div className="bg-[#FAFAFA] border border-gray-400 rounded-lg p-4 flex flex-col h-full min-h-[250px]">
-      <h3 className="text-xl font-normal text-black mb-4">{title}</h3>
+    <div
+      className="relative border border-gray-400 rounded-lg overflow-hidden flex flex-col h-full min-h-[250px]"
+      style={{
+        backgroundImage: backgroundImage ? `url(${backgroundImage})` : 'none',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundColor: '#FAFAFA'
+      }}
+    >
+      {/* Semi-transparent overlay for readability */}
+      <div className="absolute inset-0 bg-white/70"></div>
 
-      <div className="flex-1 flex flex-col gap-2">
-        <div className="grid grid-cols-2 gap-2">
-          {ingredients.map((ing, index) => (
-            <div
-              key={index}
-              className="flex items-center justify-between bg-white border border-gray-400 rounded px-2 py-1 text-sm"
-            >
-              <span className="truncate mr-1" title={ing}>{ing}</span>
-              <button
-                onClick={() => onRemove(index)}
-                className="text-gray-500 hover:text-red-500 focus:outline-none cursor-pointer"
+      {/* Content */}
+      <div className="relative z-10 p-4 flex flex-col h-full">
+        <h3 className="text-xl font-normal text-black mb-4">{title}</h3>
+
+        <div className="flex-1 flex flex-col gap-2">
+          <div className="grid grid-cols-2 gap-2">
+            {ingredients.map((ing, index) => (
+              <div
+                key={index}
+                className="flex items-center justify-between bg-white border border-gray-400 rounded px-2 py-1 text-sm"
               >
-                <span className="text-xs font-bold">x</span>
+                <span className="truncate mr-1" title={ing}>{ing}</span>
+                <button
+                  onClick={() => onRemove(index)}
+                  className="text-gray-500 hover:text-red-500 focus:outline-none cursor-pointer"
+                >
+                  <span className="text-xs font-bold">x</span>
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-4 flex justify-end">
+          {isAdding ? (
+            <div className="flex items-center w-full gap-2">
+              <input
+                type="text"
+                value={newIngredient.nombre}
+                onChange={(e) => setNewIngredient(prev => ({ ...prev, nombre: e.target.value }))}
+                onKeyDown={handleKeyDown}
+                autoFocus
+                className="w-28 border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:border-gray-500"
+                placeholder="Nombre..."
+              />
+              <input
+                type="text"
+                value={newIngredient.cantidad}
+                onChange={(e) => setNewIngredient(prev => ({ ...prev, cantidad: e.target.value }))}
+                onKeyDown={handleKeyDown}
+                className="w-18 border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:border-gray-500"
+                placeholder="Cant."
+              />
+              <input
+                type="text"
+                value={newIngredient.unidad}
+                onChange={(e) => setNewIngredient(prev => ({ ...prev, unidad: e.target.value }))}
+                onKeyDown={handleKeyDown}
+                className="w-22 border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:border-gray-500"
+                placeholder="Unidad"
+              />
+              <button
+                onClick={handleAdd}
+                className="text-green-600 hover:text-green-700 cursor-pointer"
+              >
+                <Plus size={18} />
+              </button>
+              <button
+                onClick={() => {
+                  setIsAdding(false);
+                  setNewIngredient({ cantidad: "", unidad: "", nombre: "" });
+                }}
+                className="text-red-500 hover:text-red-600 cursor-pointer"
+              >
+                <X size={18} />
               </button>
             </div>
-          ))}
+          ) : (
+            <button
+              onClick={() => setIsAdding(true)}
+              className="text-gray-600 hover:text-orange-500 flex items-center gap-1 text-sm font-medium transition-colors cursor-pointer"
+            >
+              + Ingrediente
+            </button>
+          )}
         </div>
-      </div>
-
-      <div className="mt-4 flex justify-end">
-        {isAdding ? (
-          <div className="flex items-center w-full gap-2">
-            <input
-              type="text"
-              value={newIngredient.nombre}
-              onChange={(e) => setNewIngredient(prev => ({ ...prev, nombre: e.target.value }))}
-              onKeyDown={handleKeyDown}
-              autoFocus
-              className="w-28 border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:border-gray-500"
-              placeholder="Nombre..."
-            />
-            <input
-              type="text"
-              value={newIngredient.cantidad}
-              onChange={(e) => setNewIngredient(prev => ({ ...prev, cantidad: e.target.value }))}
-              onKeyDown={handleKeyDown}
-              className="w-18 border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:border-gray-500"
-              placeholder="Cant."
-            />
-            <input
-              type="text"
-              value={newIngredient.unidad}
-              onChange={(e) => setNewIngredient(prev => ({ ...prev, unidad: e.target.value }))}
-              onKeyDown={handleKeyDown}
-              className="w-22 border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:border-gray-500"
-              placeholder="Unidad"
-            />
-            <button
-              onClick={handleAdd}
-              className="text-green-600 hover:text-green-700 cursor-pointer"
-            >
-              <Plus size={18} />
-            </button>
-            <button
-              onClick={() => {
-                setIsAdding(false);
-                setNewIngredient({ cantidad: "", unidad: "", nombre: "" });
-              }}
-              className="text-red-500 hover:text-red-600 cursor-pointer"
-            >
-              <X size={18} />
-            </button>
-          </div>
-        ) : (
-          <button
-            onClick={() => setIsAdding(true)}
-            className="text-gray-600 hover:text-orange-500 flex items-center gap-1 text-sm font-medium transition-colors cursor-pointer"
-          >
-            + Ingrediente
-          </button>
-        )}
-      </div>
+      </div> {/* End Content Wrapper */}
     </div>
   );
 };
@@ -169,6 +205,7 @@ function MiRefriPage() {
               key={categoryName}
               title={categoryName}
               ingredients={ingredients}
+              backgroundImage={categoryImages[categoryName]}
               onAdd={(ing) => handleAddIngredient(categoryName, ing)}
               onRemove={(index) => handleRemoveIngredient(categoryName, index)}
             />
