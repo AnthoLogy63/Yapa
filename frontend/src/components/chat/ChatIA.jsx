@@ -1,5 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { sendMessage } from '../../api/aiApi';
+//import { addPantryItem } from '../../api/pantryApi';
+import { addToFavorites } from '../../api/favoritesApi';
 
 const ChatIA = () => {
     const [isOpen, setIsOpen] = useState(false);
@@ -7,6 +10,7 @@ const ChatIA = () => {
     const [inputMessage, setInputMessage] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const messagesEndRef = useRef(null);
+    const navigate = useNavigate();
 
     // Auto-scroll al final cuando hay nuevos mensajes
     const scrollToBottom = () => {
@@ -19,6 +23,84 @@ const ChatIA = () => {
 
     const handleToggleChat = () => {
         setIsOpen(!isOpen);
+    };
+
+    // Manejar intents y ejecutar acciones
+    const handleIntent = async (intentData) => {
+        const token = localStorage.getItem('token');
+
+        try {
+            switch (intentData.intent) {
+                case 'OPEN_RECIPE':
+                    if (intentData.data.recipe_id) {
+                        navigate(`/recetas/${intentData.data.recipe_id}`);
+                    }
+                    break;
+
+                case 'OPEN_MY_RECIPES':
+                    navigate('/mis-recetas');
+                    break;
+
+                case 'OPEN_FAVORITES':
+                    navigate('/favoritos');
+                    break;
+
+                case 'ADD_PANTRY_ITEM':
+                    if (token && intentData.data.ingredient_name) {
+                        await addPantryItem({
+                            ingredient_name: intentData.data.ingredient_name,
+                            quantity: intentData.data.quantity || 1,
+                            unit: intentData.data.unit || 'unidad'
+                        }, token);
+                    }
+                    break;
+
+                case 'ADD_FAVORITE':
+                    if (token && intentData.data.recipe_id) {
+                        await addToFavorites(intentData.data.recipe_id, token);
+                    }
+                    break;
+
+                case 'SEARCH_RECIPES':
+                    const params = new URLSearchParams();
+                    if (intentData.data.search) {
+                        params.append('search', intentData.data.search);
+                    }
+                    if (intentData.data.with_ingredients && intentData.data.with_ingredients.length > 0) {
+                        params.append('with_ingredients', intentData.data.with_ingredients.join(','));
+                    }
+                    navigate(`/recetas?${params.toString()}`);
+                    break;
+
+                case 'CHAT':
+                default:
+                    // Solo mostrar mensaje, sin acción
+                    break;
+            }
+        } catch (error) {
+            console.error('Error ejecutando intent:', error);
+            // El error se mostrará en el mensaje del bot
+        }
+    };
+
+    // Obtener icono según el intent
+    const getIntentIcon = (intent) => {
+        switch (intent) {
+            case 'OPEN_RECIPE':
+                return '📖';
+            case 'OPEN_MY_RECIPES':
+                return '👨‍🍳';
+            case 'OPEN_FAVORITES':
+                return '❤️';
+            case 'ADD_PANTRY_ITEM':
+                return '🥫';
+            case 'ADD_FAVORITE':
+                return '⭐';
+            case 'SEARCH_RECIPES':
+                return '🔍';
+            default:
+                return '💬';
+        }
     };
 
     const handleSendMessage = async (e) => {
@@ -39,9 +121,14 @@ const ChatIA = () => {
         try {
             const response = await sendMessage(inputMessage);
 
+            // Ejecutar acción basada en intent
+            await handleIntent(response);
+
+            // Mostrar mensaje del bot con intent
             const botMessage = {
-                text: response.response,
+                text: response.message,
                 sender: 'bot',
+                intent: response.intent,
                 timestamp: new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
             };
 
@@ -148,7 +235,14 @@ const ChatIA = () => {
                                 </svg>
                             </div>
                             <h4 className="text-xl font-semibold text-gray-800 mb-2">¡Hola! 👋</h4>
-                            <p className="text-sm text-gray-600">Soy tu asistente de IA. ¿En qué puedo ayudarte hoy?</p>
+                            <p className="text-sm text-gray-600">Soy tu asistente de IA. Puedo ayudarte a:</p>
+                            <ul className="text-xs text-gray-500 mt-2 text-left space-y-1">
+                                <li>📖 Abrir recetas específicas</li>
+                                <li>🥫 Agregar ingredientes a tu despensa</li>
+                                <li>⭐ Guardar recetas en favoritos</li>
+                                <li>🔍 Buscar recetas</li>
+                                <li>💬 Responder tus preguntas</li>
+                            </ul>
                         </div>
                     ) : (
                         messages.map((msg, index) => (
@@ -162,6 +256,12 @@ const ChatIA = () => {
                                         ? 'bg-red-100 text-red-700 rounded-bl-sm'
                                         : 'bg-white text-gray-800 shadow-sm rounded-bl-sm'
                                     }`}>
+                                    {msg.intent && msg.sender === 'bot' && (
+                                        <div className="text-xs opacity-70 mb-1 flex items-center gap-1">
+                                            <span>{getIntentIcon(msg.intent)}</span>
+                                            <span className="font-semibold">{msg.intent.replace('_', ' ')}</span>
+                                        </div>
+                                    )}
                                     <p className="text-sm leading-relaxed break-words">{msg.text}</p>
                                     <span className={`block text-[10px] mt-1 ${msg.sender === 'user' ? 'opacity-70' : 'opacity-50'}`}>
                                         {msg.timestamp}
