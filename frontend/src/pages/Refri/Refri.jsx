@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, Plus, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
+import { getPantries, getPantryIngredients, addPantryIngredient, searchIngredients } from "../../api/pantryApi";
 
 // Import background images
 import VerdurasBg from './Alimentos/Verduras.jpg';
@@ -147,7 +149,9 @@ const CategoryCard = ({ title, ingredients, onAdd, onRemove, backgroundImage }) 
 
 function MiRefriPage() {
   const navigate = useNavigate();
+  const { token, isLogged } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
+  const [pantryId, setPantryId] = useState(null);
 
   const [categories, setCategories] = useState({
     "Verduras": [],
@@ -159,6 +163,62 @@ function MiRefriPage() {
     "Bebidas": [],
     "Cereales y Masas": []
   });
+
+  const loadPantryData = () => {
+    if (isLogged && token) {
+      getPantries(token).then(pantries => {
+        if (pantries && pantries.length > 0) {
+          const pid = pantries[0].id;
+          setPantryId(pid);
+          return getPantryIngredients(pid, token);
+        }
+        return [];
+      }).then(ingredients => {
+        if (!ingredients) return;
+
+        const freshCats = {
+          "Verduras": [],
+          "Frutas": [],
+          "Granos y legumbres": [],
+          "Lácteos": [],
+          "Proteínas animales": [],
+          "Condimentos y salsas": [],
+          "Bebidas": [],
+          "Cereales y Masas": []
+        };
+
+        ingredients.forEach(item => {
+          const name = item.ingredient.name;
+          const amount = parseFloat(item.amount);
+          const unit = item.unit;
+          const str = `${name} ${amount} ${unit}`.trim();
+
+          // Match classification to keys
+          const classification = item.ingredient.classification;
+
+          if (classification && freshCats[classification]) {
+            freshCats[classification].push(str);
+          } else {
+            // Fallback loose matching
+            const lower = (classification || "").toLowerCase();
+            if (lower.includes("verdura")) freshCats["Verduras"].push(str);
+            else if (lower.includes("fruta")) freshCats["Frutas"].push(str);
+            else if (lower.includes("grano") || lower.includes("legumbre")) freshCats["Granos y legumbres"].push(str);
+            else if (lower.includes("lacteo") || lower.includes("lácteo")) freshCats["Lácteos"].push(str);
+            else if (lower.includes("proteína") || lower.includes("proteina") || lower.includes("carne")) freshCats["Proteínas animales"].push(str);
+            else if (lower.includes("condimento") || lower.includes("salsa")) freshCats["Condimentos y salsas"].push(str);
+            else if (lower.includes("bebida")) freshCats["Bebidas"].push(str);
+            else if (lower.includes("cereal") || lower.includes("masa")) freshCats["Cereales y Masas"].push(str);
+          }
+        });
+        setCategories(freshCats);
+      }).catch(err => console.error("Error loading pantry:", err));
+    }
+  };
+
+  useEffect(() => {
+    loadPantryData();
+  }, [token, isLogged]);
 
   const handleAddIngredient = (category, ingredient) => {
     setCategories(prev => ({
