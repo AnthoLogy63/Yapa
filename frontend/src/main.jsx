@@ -5,14 +5,14 @@ import "./index.css";
 import { BrowserRouter } from "react-router-dom";
 
 import { GoogleOAuthProvider } from "@react-oauth/google";
-import { AuthProvider } from "./context/AuthContext.jsx"; 
+import { AuthProvider } from "./context/AuthContext.jsx";
 
-const GOOGLE_CLIENT_ID = "877945333888-jb8qd73ai3cr56omv75uiq5gnijdd8kj.apps.googleusercontent.com";
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "655196855772-ae43ee2b8mlhecen7pkjl3plmvp1kth6.apps.googleusercontent.com";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-      <AuthProvider> 
+      <AuthProvider>
         <BrowserRouter>
           <App />
         </BrowserRouter>
