@@ -15,7 +15,7 @@ SECRET_KEY = config(
 
 DEBUG = config('DEBUG', default=True, cast=bool)
 
-ALLOWED_HOSTS = ['yapa-five.vercel.app', 'localhost']
+ALLOWED_HOSTS = ['yapa-five.vercel.app', 'localhost', 'yapa-2fdq.onrender.com']
 
 INSTALLED_APPS = [
     "corsheaders",
