@@ -1,6 +1,7 @@
 from pathlib import Path
 from decouple import config
 import warnings
+import dj_database_url
 
 # Suprimir warnings de dj-rest-auth (problema de la librería, no nuestro)
 warnings.filterwarnings('ignore', message='app_settings.USERNAME_REQUIRED is deprecated')
@@ -97,10 +98,11 @@ CORS_ALLOW_ALL_ORIGINS = True
 WSGI_APPLICATION = 'core.wsgi.application'
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        default=config('DATABASE_URL'),
+        conn_max_age=600,
+        ssl_require=True
+    )
 }
 
 AUTH_PASSWORD_VALIDATORS = [
