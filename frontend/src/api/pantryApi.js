@@ -42,9 +42,9 @@ export const createIngredient = async (data, token) => {
 
 
 // Pantry Ingredients
-export const getPantryIngredients = async (pantryId, token) => {
+export const getPantryIngredients = async (token) => {
     try {
-        const res = await axios.get(`${API_URL}pantry/${pantryId}/ingredients/`, {
+        const res = await axios.get(`${API_URL}pantry-ingredients/`, {
             headers: { Authorization: `Token ${token}` },
         });
         return res.data;
@@ -54,14 +54,39 @@ export const getPantryIngredients = async (pantryId, token) => {
     }
 };
 
-export const addPantryIngredient = async (pantryId, data, token) => {
+export const addPantryIngredient = async (data, token) => {
     try {
-        const res = await axios.post(`${API_URL}pantry/${pantryId}/ingredients/`, data, {
+        const res = await axios.post(`${API_URL}pantry-ingredients/`, data, {
             headers: { Authorization: `Token ${token}` },
         });
         return res.data;
     } catch (err) {
         console.error('Error adding pantry ingredient:', err);
+        throw err;
+    }
+};
+
+export const deletePantryIngredient = async (id, token) => {
+    try {
+        const res = await axios.delete(`${API_URL}pantry-ingredients/${id}/`, {
+            headers: { Authorization: `Token ${token}` },
+        });
+        return res.data;
+    } catch (err) {
+        console.error('Error deleting pantry ingredient:', err);
+        throw err;
+    }
+};
+
+export const adjustPantryIngredient = async (id, amountChange, token) => {
+    try {
+        const res = await axios.patch(`${API_URL}pantry-ingredients/${id}/adjust-amount/`,
+            { amount_change: amountChange },
+            { headers: { Authorization: `Token ${token}` } }
+        );
+        return res.data;
+    } catch (err) {
+        console.error('Error adjusting pantry ingredient:', err);
         throw err;
     }
 };
