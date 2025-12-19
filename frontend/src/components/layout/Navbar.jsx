@@ -3,6 +3,8 @@ import { useLocation, useNavigate } from "react-router-dom";
 import Login from "../modals/Login";
 import { useAuth } from "../../context/AuthContext";
 import YapaLogo from "../../assets/logo.png";
+import { getAllRecipes } from "../../api/recipesApi";
+import Trie from "../../utils/Trie";
 
 function Navbar() {
   const location = useLocation();
@@ -12,6 +14,10 @@ function Navbar() {
   const [searchTerm, setSearchTerm] = useState("");
   const { user, isLogged, logout } = useAuth();
   const dropdownRef = useRef(null);
+
+  // Autocomplete State
+  const [suggestion, setSuggestion] = useState("");
+  const trieRef = useRef(new Trie());
 
   const isHomepage = location.pathname === "/";
 
@@ -39,6 +45,36 @@ function Navbar() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // Fetch recipes for autocomplete if NOT homepage (Homepage handles its own)
+  // Actually, Navbar is always present. We can fetch nicely.
+  // Optimization: If on Homepage, maybe we don't need to fetch twice? 
+  // But for now, simple is better. Let's fetch to ensure Navbar always has data.
+  // Or check if recipes are cached/available.
+  useEffect(() => {
+    if (!hideSearch && !isHomepage) {
+      const fetchRecipesForTrie = async () => {
+        try {
+          const allRecipes = await getAllRecipes();
+          allRecipes.sort((a, b) => {
+            const dateA = a.date_register || '';
+            const dateB = b.date_register || '';
+            return dateA > dateB ? 1 : -1;
+          });
+
+          trieRef.current = new Trie(); // Reset
+          allRecipes.forEach(recipe => {
+            if (recipe.title) {
+              trieRef.current.insert(recipe.title);
+            }
+          });
+        } catch (error) {
+          console.error("Error loading recipes for navbar autocomplete", error);
+        }
+      };
+      fetchRecipesForTrie();
+    }
+  }, [hideSearch, isHomepage]);
 
   const handleCrear = () => {
     if (isLogged) navigate("/crear-receta");
@@ -88,6 +124,33 @@ function Navbar() {
     }
   };
 
+  const handleSearchChange = (e) => {
+    const val = e.target.value;
+    setSearchTerm(val);
+
+    if (val.length > 0) {
+      const found = trieRef.current.search(val);
+      if (found && found.toLowerCase().startsWith(val.toLowerCase()) && found.toLowerCase() !== val.toLowerCase()) {
+        setSuggestion(found);
+      } else {
+        setSuggestion("");
+      }
+    } else {
+      setSuggestion("");
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    if ((e.key === 'Tab' || e.key === 'ArrowRight') && suggestion) {
+      e.preventDefault();
+      setSearchTerm(suggestion);
+      setSuggestion("");
+    }
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
+
   return (
     <div className="flex items-center justify-between min-h-18 px-10 bg-white w-full mx-auto mb-3">
       <div className="flex items-center space-x-3">
@@ -119,18 +182,30 @@ function Navbar() {
 
         {!isHomepage && !hideSearch && (
           <div className="flex items-center space-x-2">
-            <div className="relative flex items-center border border-gray-400 rounded-lg overflow-hidden w-64">
-              <svg className="w-5 h-5 text-gray-500 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="relative flex items-center border border-gray-400 rounded-lg overflow-hidden w-64 bg-white">
+              <svg className="w-5 h-5 text-gray-500 ml-3 z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
-              <input
-                type="text"
-                placeholder="Palabra Buscada"
-                className="py-1 pl-2 pr-4 w-full focus:outline-none text-gray-700 placeholder-gray-500 bg-white"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-              />
+
+              <div className="relative w-full">
+                {/* Ghost Text */}
+                <input
+                  type="text"
+                  value={suggestion && searchTerm ? searchTerm + suggestion.slice(searchTerm.length) : ""}
+                  readOnly
+                  className="absolute top-0 left-0 w-full py-1 pl-2 pr-4 focus:outline-none text-gray-400 bg-transparent pointer-events-none"
+                  style={{ zIndex: 0 }}
+                />
+                {/* Real Input */}
+                <input
+                  type="text"
+                  placeholder="Palabra Buscada"
+                  className="relative z-10 w-full py-1 pl-2 pr-4 focus:outline-none text-gray-700 placeholder-gray-500 bg-transparent"
+                  value={searchTerm}
+                  onChange={handleSearchChange}
+                  onKeyDown={handleKeyDown}
+                />
+              </div>
             </div>
 
             <button

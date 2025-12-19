@@ -85,7 +85,11 @@ function Homepage() {
 
         // 3. Sort by date_register ASC (Oldest first) to respect priority rule
         // Assuming date_register is ISO string. String comparison works for ISO.
-        allRecipes.sort((a, b) => (a.date_register > b.date_register ? 1 : -1));
+        allRecipes.sort((a, b) => {
+          const dateA = a.date_register || '';
+          const dateB = b.date_register || '';
+          return dateA > dateB ? 1 : -1;
+        });
 
         // 4. Build Trie
         allRecipes.forEach(recipe => {
@@ -208,7 +212,7 @@ function Homepage() {
               {/* Ghost Text Input (Background) */}
               <input
                 type="text"
-                value={suggestion}
+                value={suggestion && searchTerm ? searchTerm + suggestion.slice(searchTerm.length) : ""}
                 readOnly
                 className="absolute top-0 left-0 w-full py-1.5 pl-2 pr-4 focus:outline-none text-gray-400 bg-transparent pointer-events-none"
                 style={{ zIndex: 0 }}

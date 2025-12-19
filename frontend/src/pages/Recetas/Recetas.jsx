@@ -1,11 +1,15 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { getAllRecipes } from "../../api/recipesApi";
+import Trie from "../../utils/Trie";
+import { useAuth } from "../../context/AuthContext";
+import { getPantryIngredients } from "../../api/pantryApi";
 
 function RecetasPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const searchTerm = searchParams.get("search");
+  const { token, isLogged } = useAuth();
 
   const [recipes, setRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -13,6 +17,7 @@ function RecetasPage() {
   const [ingCon, setIngCon] = useState("");
   const [listCon, setListCon] = useState([]);
 
+  // ... rest of state ...
   const [ingSin, setIngSin] = useState("");
   const [listSin, setListSin] = useState([]);
 
@@ -24,13 +29,72 @@ function RecetasPage() {
   const [selectedTiempo, setSelectedTiempo] = useState("");
   const [selectedPorciones, setSelectedPorciones] = useState("");
 
+  // Autocomplete State
+  const [suggestionCon, setSuggestionCon] = useState("");
+  const [suggestionSin, setSuggestionSin] = useState("");
+  const ingredientsTrieRef = useRef(new Trie());
+
+  // ... useEffects ...
+
+  // Handler for "Consultar" button
+  const handleConsultarRefri = async () => {
+    if (!isLogged || !token) {
+      alert("Debes iniciar sesión para consultar tu refri.");
+      return;
+    }
+
+    try {
+      const pantryItems = await getPantryIngredients(token);
+      if (pantryItems && Array.isArray(pantryItems)) {
+        const ingredientNames = pantryItems.map(item => item.ingredient.name);
+        // Avoid duplicates and add to listCon
+        const uniqueNames = [...new Set([...listCon, ...ingredientNames])];
+        setListCon(uniqueNames);
+      }
+    } catch (error) {
+      console.error("Error consultando el refri:", error);
+    }
+  };
+
+  // ... existing handlers ...
+
+  // Load Ingredients for Trie (Once)
+  useEffect(() => {
+    const fetchAllForAutocomplete = async () => {
+      try {
+        const allData = await getAllRecipes(); // Fetch ALL without filters
+        ingredientsTrieRef.current = new Trie();
+
+        allData.forEach(recipe => {
+          // Handle 'ingredients' (list of strings - legacy or simple)
+          if (Array.isArray(recipe.ingredients)) {
+            recipe.ingredients.forEach(ing => {
+              if (typeof ing === 'string') ingredientsTrieRef.current.insert(ing);
+            });
+          }
+          // Handle 'recipe_ingredients' (nested objects - standard)
+          if (Array.isArray(recipe.recipe_ingredients)) {
+            recipe.recipe_ingredients.forEach(ri => {
+              if (ri.ingredient && ri.ingredient.name) {
+                ingredientsTrieRef.current.insert(ri.ingredient.name);
+              }
+            });
+          }
+        });
+      } catch (err) {
+        console.error("Error loading ingredients for autocomplete:", err);
+      }
+    };
+    fetchAllForAutocomplete();
+  }, []);
+
   useEffect(() => {
     const fetchRecipes = async () => {
       setLoading(true);
       try {
         const data = await getAllRecipes(
-          searchTerm, 
-          listCon, 
+          searchTerm,
+          listCon,
           listSin,
           selectedDificultad,
           selectedTiempo,
@@ -50,20 +114,76 @@ function RecetasPage() {
     fetchRecipes();
   }, [searchTerm, listCon, listSin, selectedDificultad, selectedTiempo, selectedPorciones]);
 
+  const handleIngConChange = (e) => {
+    const val = e.target.value;
+    setIngCon(val);
+
+    if (val.length > 0) {
+      const found = ingredientsTrieRef.current.search(val);
+      if (found && found.toLowerCase().startsWith(val.toLowerCase()) && found.toLowerCase() !== val.toLowerCase()) {
+        setSuggestionCon(found);
+      } else {
+        setSuggestionCon("");
+      }
+    } else {
+      setSuggestionCon("");
+    }
+  };
+
+  const handleIngConKeyDown = (e) => {
+    if ((e.key === 'Tab' || e.key === 'ArrowRight') && suggestionCon) {
+      e.preventDefault();
+      setIngCon(suggestionCon);
+      setSuggestionCon("");
+    }
+    if (e.key === 'Enter') {
+      agregarCon();
+    }
+  };
+
   const agregarCon = () => {
     if (ingCon.trim() === "") return;
     setListCon([...listCon, ingCon.trim()]);
     setIngCon("");
+    setSuggestionCon("");
   };
 
   const eliminarCon = (item) => {
     setListCon(listCon.filter((i) => i !== item));
   };
 
+  const handleIngSinChange = (e) => {
+    const val = e.target.value;
+    setIngSin(val);
+
+    if (val.length > 0) {
+      const found = ingredientsTrieRef.current.search(val);
+      if (found && found.toLowerCase().startsWith(val.toLowerCase()) && found.toLowerCase() !== val.toLowerCase()) {
+        setSuggestionSin(found);
+      } else {
+        setSuggestionSin("");
+      }
+    } else {
+      setSuggestionSin("");
+    }
+  };
+
+  const handleIngSinKeyDown = (e) => {
+    if ((e.key === 'Tab' || e.key === 'ArrowRight') && suggestionSin) {
+      e.preventDefault();
+      setIngSin(suggestionSin);
+      setSuggestionSin("");
+    }
+    if (e.key === 'Enter') {
+      agregarSin();
+    }
+  };
+
   const agregarSin = () => {
     if (ingSin.trim() === "") return;
     setListSin([...listSin, ingSin.trim()]);
     setIngSin("");
+    setSuggestionSin("");
   };
 
   const eliminarSin = (item) => {
@@ -126,27 +246,24 @@ function RecetasPage() {
                       </svg>
                       <span>{recipe.portions} porciones</span>
                     </div>
-                    
+
                     {/* DIFICULTAD CON BARRAS */}
                     <div className="flex items-center gap-2">
                       <div className="flex items-end gap-0.5 h-5">
-                        <div className={`w-1 ${
-                          recipe.difficulty === 'Fácil' || recipe.difficulty === 'Media' || recipe.difficulty === 'Difícil' 
-                          ? 'bg-gray-700 h-2' 
+                        <div className={`w-1 ${recipe.difficulty === 'Fácil' || recipe.difficulty === 'Media' || recipe.difficulty === 'Difícil'
+                          ? 'bg-gray-700 h-2'
                           : 'bg-gray-300 h-2'
-                        }`}></div>
-                        
-                        <div className={`w-1 ${
-                          recipe.difficulty === 'Media' || recipe.difficulty === 'Difícil'
-                          ? 'bg-gray-700 h-3.5' 
+                          }`}></div>
+
+                        <div className={`w-1 ${recipe.difficulty === 'Media' || recipe.difficulty === 'Difícil'
+                          ? 'bg-gray-700 h-3.5'
                           : 'bg-gray-300 h-3.5'
-                        }`}></div>
-                        
-                        <div className={`w-1 ${
-                          recipe.difficulty === 'Difícil'
-                          ? 'bg-gray-700 h-5' 
+                          }`}></div>
+
+                        <div className={`w-1 ${recipe.difficulty === 'Difícil'
+                          ? 'bg-gray-700 h-5'
                           : 'bg-gray-300 h-5'
-                        }`}></div>
+                          }`}></div>
                       </div>
                       <span>{recipe.difficulty || 'Media'}</span>
                     </div>
@@ -167,14 +284,25 @@ function RecetasPage() {
           <p className="font-medium mb-1">Recetas con:</p>
 
           <div className="flex items-center gap-3">
-            <input
-              type="text"
-              value={ingCon}
-              onChange={(e) => setIngCon(e.target.value)}
-              placeholder="Introduce Ingredientes"
-              className="border border-gray-1000 rounded-md px-3 py-2 w-full text-gray-700/70"
-
-            />
+            <div className="relative w-full">
+              {/* Ghost Input */}
+              <input
+                type="text"
+                value={suggestionCon && ingCon ? ingCon + suggestionCon.slice(ingCon.length) : ""}
+                readOnly
+                className="absolute top-0 left-0 w-full border border-transparent rounded-md px-3 py-2 text-gray-400 pointer-events-none bg-transparent"
+                style={{ zIndex: 0 }}
+              />
+              {/* Real Input */}
+              <input
+                type="text"
+                value={ingCon}
+                onChange={handleIngConChange}
+                onKeyDown={handleIngConKeyDown}
+                placeholder="Introduce Ingredientes"
+                className="relative z-10 border border-gray-1000 rounded-md px-3 py-2 w-full text-gray-700/70 bg-transparent focus:outline-none"
+              />
+            </div>
 
             <button
               onClick={agregarCon}
@@ -205,14 +333,25 @@ function RecetasPage() {
           <p className="font-medium mb-1">Recetas sin:</p>
 
           <div className="flex items-center gap-3">
-            <input
-              type="text"
-              value={ingSin}
-              onChange={(e) => setIngSin(e.target.value)}
-              placeholder="Introduce Ingredientes"
-              className="border border-gray-1000 rounded-md px-3 py-2 w-full text-gray-700/70"
-
-            />
+            <div className="relative w-full">
+              {/* Ghost Input */}
+              <input
+                type="text"
+                value={suggestionSin && ingSin ? ingSin + suggestionSin.slice(ingSin.length) : ""}
+                readOnly
+                className="absolute top-0 left-0 w-full border border-transparent rounded-md px-3 py-2 text-gray-400 pointer-events-none bg-transparent"
+                style={{ zIndex: 0 }}
+              />
+              {/* Real Input */}
+              <input
+                type="text"
+                value={ingSin}
+                onChange={handleIngSinChange}
+                onKeyDown={handleIngSinKeyDown}
+                placeholder="Introduce Ingredientes"
+                className="relative z-10 border border-gray-1000 rounded-md px-3 py-2 w-full text-gray-700/70 bg-transparent focus:outline-none"
+              />
+            </div>
 
             {/* BOTÓN NEGRO COMO ANTES */}
             <button
@@ -239,13 +378,13 @@ function RecetasPage() {
             ))}
           </div>
         </div>
-        
+
         {/* FILTROS CON DROPDOWNS */}
         <div className="mb-6">
           <h4 className="font-medium text-lg mb-3">Filtros adicionales:</h4>
-          
+
           <div className="flex gap-2">
-            
+
             {/* DIFICULTAD */}
             <div className="relative">
               <button
@@ -266,7 +405,7 @@ function RecetasPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
-              
+
               {showDificultad && (
                 <div className="absolute top-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg z-10 w-full">
                   <div
@@ -327,7 +466,7 @@ function RecetasPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
-              
+
               {showTiempo && (
                 <div className="absolute top-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg z-10 whitespace-nowrap">
                   <div
@@ -397,7 +536,7 @@ function RecetasPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
-              
+
               {showPorciones && (
                 <div className="absolute top-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg z-10">
                   <div
@@ -466,6 +605,7 @@ function RecetasPage() {
             Consulta las recetas según lo que tienes en tu refri
           </span>
           <button
+            onClick={handleConsultarRefri}
             className="flex items-center justify-center px-4 py-2 text-white font-semibold rounded-lg shadow-md hover:brightness-110 cursor-pointer"
             style={{ backgroundColor: "#F99F3F" }}
           >
