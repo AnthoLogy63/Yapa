@@ -64,7 +64,7 @@ Debes responder SIEMPRE en formato JSON con esta estructura:
 
 INTENTS DISPONIBLES:
 
-171. OPEN_RECIPE: Cuando el usuario quiere ver una receta específica
+1. OPEN_RECIPE: Cuando el usuario quiere ver una receta específica
    - data: {"recipe_id": number}
    - Ejemplos: "abre la receta 5", "muéstrame la receta de pollo"
 
@@ -78,24 +78,33 @@ INTENTS DISPONIBLES:
 
 4. ADD_PANTRY_ITEM: Cuando el usuario quiere agregar ingredientes a su despensa
    - data: {"ingredient_name": string, "quantity": number, "unit": string}
-   - Ejemplos: "agrega 2 tomates", "tengo 500g de arroz"
+   - Ejemplos: "agrega 2 tomates", "tengo 500g de arroz", "compra leche"
 
 5. ADD_FAVORITE: Cuando el usuario quiere guardar una receta en favoritos
    - data: {"recipe_id": number}
    - Ejemplos: "guarda esta receta", "agrega la receta 5 a favoritos"
 
-6. SEARCH_RECIPES: Cuando el usuario quiere buscar recetas
-   - data: {"search": string, "with_ingredients": [strings], "without_ingredients": [strings]}
+6. SEARCH_RECIPES: Cuando el usuario quiere buscar recetas por nombre o ingredientes generales
+   - data: {"search": string, "with_ingredients": [strings]}
    - Ejemplos: "busca recetas con pollo", "qué puedo cocinar con arroz"
 
-7. CHAT: Para conversación general o cuando no hay una acción específica
+7. OPEN_PANTRY: Cuando el usuario quiere ver qué hay en su refrigerador/despensa
+   - data: {}
+   - Ejemplos: "abre mi refri", "qué tengo en la despensa", "muéstrame mis ingredientes", "ver mi refri", "quiero ver lo que tengo", "llevame a mi refri"
+
+8. SEARCH_RECIPES_BY_PANTRY: Cuando el usuario quiere buscar recetas usando lo que tiene en su refri
+   - data: {}
+   - Ejemplos: "qué puedo cocinar con lo que tengo", "recetas con mis ingredientes", "usa mi refri para buscar"
+
+9. CHAT: Para conversación general o cuando no hay una acción específica
    - data: {}
    - Ejemplos: "hola", "¿qué es una receta?", "gracias"
 
 IMPORTANTE:
 - Si el usuario menciona un número de receta, usa ese ID
+- Si el usuario dice "llevame a mi refri" o "quiero ver lo que tengo", usa OPEN_PANTRY
 - Si menciona un nombre de receta pero no un ID, usa recipe_id: null y menciona en el mensaje que necesitas el ID
-- Para ingredientes, extrae cantidad y unidad del mensaje
+- Para ingredientes, extrae cantidad y unidad del mensaje (si no se especifica, usa 1 y 'unidad')
 - Siempre incluye un mensaje amigable y útil
 - Si no estás seguro del intent, usa CHAT
 
@@ -131,7 +140,11 @@ Responde SOLO con el JSON, sin texto adicional."""
                     intent_data["data"] = {}
                 
                 # Validar que el intent sea válido
-                valid_intents = ["OPEN_RECIPE", "OPEN_MY_RECIPES", "OPEN_FAVORITES", "ADD_PANTRY_ITEM", "ADD_FAVORITE", "SEARCH_RECIPES", "CHAT"]
+                valid_intents = [
+                    "OPEN_RECIPE", "OPEN_MY_RECIPES", "OPEN_FAVORITES", 
+                    "ADD_PANTRY_ITEM", "ADD_FAVORITE", "SEARCH_RECIPES", 
+                    "OPEN_PANTRY", "SEARCH_RECIPES_BY_PANTRY", "CHAT"
+                ]
                 if intent_data["intent"] not in valid_intents:
                     intent_data["intent"] = "CHAT"
                 

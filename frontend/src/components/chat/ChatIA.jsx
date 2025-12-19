@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { sendMessage } from '../../api/aiApi';
-//import { addPantryItem } from '../../api/pantryApi';
+import { addPantryIngredient, getPantryIngredients } from '../../api/pantryApi'; // Correct import
 import { addToFavorites } from '../../api/favoritesApi';
 
 const ChatIA = () => {
@@ -47,11 +47,28 @@ const ChatIA = () => {
 
                 case 'ADD_PANTRY_ITEM':
                     if (token && intentData.data.ingredient_name) {
-                        await addPantryItem({
+                        await addPantryIngredient({
                             ingredient_name: intentData.data.ingredient_name,
-                            quantity: intentData.data.quantity || 1,
-                            unit: intentData.data.unit || 'unidad'
+                            amount: intentData.data.quantity || 1,
+                            unit: intentData.data.unit || 'unidad', // Default to string if not mapped
+                            date_aggregate: new Date().toISOString().split('T')[0]
                         }, token);
+                    }
+                    break;
+
+                case 'OPEN_PANTRY':
+                    navigate('/refri');
+                    break;
+
+                case 'SEARCH_RECIPES_BY_PANTRY':
+                    if (token) {
+                        const pantryItems = await getPantryIngredients(token);
+                        if (pantryItems && pantryItems.length > 0) {
+                            const ingredients = pantryItems.map(item => item.ingredient.name).join(',');
+                            navigate(`/recetas?with_ingredients=${encodeURIComponent(ingredients)}`);
+                        } else {
+                            // Handle empty pantry case if needed, or let the AI message handle it
+                        }
                     }
                     break;
 
@@ -97,7 +114,10 @@ const ChatIA = () => {
             case 'ADD_FAVORITE':
                 return '⭐';
             case 'SEARCH_RECIPES':
+            case 'SEARCH_RECIPES_BY_PANTRY':
                 return '🔍';
+            case 'OPEN_PANTRY':
+                return '🧊';
             default:
                 return '💬';
         }

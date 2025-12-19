@@ -88,6 +88,18 @@ function RecetasPage() {
     fetchAllForAutocomplete();
   }, []);
 
+  // Parse 'with_ingredients' query param on load
+  useEffect(() => {
+    const withIngParam = searchParams.get("with_ingredients");
+    if (withIngParam) {
+      const ingredients = withIngParam.split(",");
+      setListCon(prev => {
+        const unique = [...new Set([...prev, ...ingredients])];
+        return unique;
+      });
+    }
+  }, [searchParams]);
+
   useEffect(() => {
     const fetchRecipes = async () => {
       setLoading(true);
