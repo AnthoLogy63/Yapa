@@ -79,7 +79,7 @@ TEMPLATES = [
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
-    "https://yapa-five.vercel.app/"
+    "https://yapa-five.vercel.app",
 ]
 
 CORS_ALLOW_ALL_ORIGINS = True
