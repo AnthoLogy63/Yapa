@@ -47,11 +47,9 @@ function RecetasPage() {
       const pantryItems = await getPantryIngredients(token);
       if (pantryItems && Array.isArray(pantryItems)) {
         const ingredientNames = pantryItems.map(item => item.ingredient.name);
-
-        if (ingredientNames.length > 0) {
-          const searchString = ingredientNames.join(" ");
-          navigate(`/recetas?search=${encodeURIComponent(searchString)}`);
-        }
+        // Avoid duplicates and add to listCon
+        const uniqueNames = [...new Set([...listCon, ...ingredientNames])];
+        setListCon(uniqueNames);
       }
     } catch (error) {
       console.error("Error consultando el refri:", error);
