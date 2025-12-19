@@ -241,7 +241,7 @@ function RecetasPage() {
                 <div className="flex flex-col p-4 w-full">
                   <h3 className="font-bold text-lg uppercase">{recipe.title}</h3>
 
-                  <p className="text-gray-700 text-base mt-1 leading-snug min-h-22 line-clamp-3">
+                  <p className="text-gray-700 text-base mt-1 leading-snug min-h-22 line-clamp-4">
                     {recipe.description}
                   </p>
 

@@ -60,11 +60,11 @@ function MisRecetasPage() {
       await deleteRecipe(recipeToDelete, token);
       setShowDeleteModal(false);
       setShowSuccessMessage(true);
-      
+
       // Eliminar de la lista local
       setMisRecetas(prev => prev.filter(r => r.id !== recipeToDelete));
       setFilteredRecetas(prev => prev.filter(r => r.id !== recipeToDelete));
-      
+
       // Ocultar mensaje después de 2 segundos
       setTimeout(() => {
         setShowSuccessMessage(false);
@@ -130,11 +130,11 @@ function MisRecetasPage() {
           {filteredRecetas.map((receta) => (
             <div
               key={receta.id}
-              className="w-full bg-[#FFF8E7] rounded-xl shadow-sm flex overflow-hidden transition transform hover:shadow-md"
+              className="w-full bg-[#FFF8E7] rounded-xl shadow-sm flex overflow-hidden transition transform hover:shadow-md h-52"
               style={{ border: '1px solid rgb(200,200,200)' }}
             >
               {/* Imagen */}
-              <div className="flex-shrink-0 w-[250px] h-[180px] bg-gradient-to-br from-orange-200 to-orange-300 flex items-center justify-center">
+              <div className="flex-shrink-0 w-[35%] max-w-70 bg-gradient-to-br from-orange-200 to-orange-300 flex items-center justify-center">
                 {receta.image ? (
                   <img src={receta.image} alt={receta.title} className="w-full h-full object-cover" />
                 ) : (
@@ -145,13 +145,13 @@ function MisRecetasPage() {
               </div>
 
               {/* Contenido */}
-              <div className="flex-1 p-5 flex flex-col justify-between">
+              <div className="flex-1 p-4 flex flex-col justify-between">
                 <div>
-                  <h3 className="font-bold text-lg text-gray-800 mb-2">
+                  <h3 className="font-bold text-lg text-gray-800 mb-1">
                     {receta.title}
                   </h3>
 
-                  <p className="text-gray-700 text-sm leading-relaxed mb-3">
+                  <p className="text-gray-700 text-sm leading-snug mb-2 line-clamp-5">
                     {receta.description}
                   </p>
 
