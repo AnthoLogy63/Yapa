@@ -15,7 +15,7 @@ SECRET_KEY = config(
 
 DEBUG = config('DEBUG', default=True, cast=bool)
 
-ALLOWED_HOSTS = ['yapa-five.vercel.app', 'localhost', 'yapa-2fdq.onrender.com']
+ALLOWED_HOSTS = ['yapa-five.vercel.app', 'localhost', '127.0.0.1', 'yapa-2fdq.onrender.com']
 
 INSTALLED_APPS = [
     "corsheaders",
@@ -79,6 +79,7 @@ TEMPLATES = [
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
+    "http://127.0.0.1:5173",
     "https://yapa-five.vercel.app",
 ]
 

@@ -4,12 +4,41 @@ from .category import CategorySerializer
 from .ingredient import IngredientSerializer
 from .user import UserSerializer
 import re
+import json
+
+
+class JSONStringField(serializers.Field):
+    """
+    Campo personalizado que acepta strings JSON y los convierte a objetos Python.
+    Necesario porque FormData envía JSON como strings.
+    """
+    def to_internal_value(self, data):
+        if isinstance(data, str):
+            try:
+                return json.loads(data)
+            except json.JSONDecodeError:
+                # Si no es JSON válido, devolver como string para backward compatibility
+                return data
+        return data
+    
+    def to_representation(self, value):
+        return value
 
 
 class StepRecipeSerializer(serializers.ModelSerializer):
     class Meta:
         model = StepRecipe
         fields = ["id", "description", "photo", "estimated_time"]
+
+
+class RecipeIngredientInputSerializer(serializers.Serializer):
+    """
+    Serializer para recibir ingredientes estructurados al crear/editar recetas.
+    Permite al usuario especificar la unidad libremente.
+    """
+    name = serializers.CharField(max_length=150)
+    amount = serializers.DecimalField(max_digits=8, decimal_places=2)
+    unit = serializers.CharField(max_length=50)
 
 
 class RecipeIngredientSerializer(serializers.ModelSerializer):
@@ -29,9 +58,10 @@ class RecipeSerializer(serializers.ModelSerializer):
     # Eliminamos image = serializers.SerializerMethodField() para permitir escritura
     # La lógica de visualización se mueve a to_representation
 
-    # Campos de escritura para recibir listas de strings
+    # Campos de escritura para recibir ingredientes y pasos
+    # Ahora acepta tanto objetos estructurados como strings para compatibilidad
     ingredients_input = serializers.ListField(
-        child=serializers.CharField(), write_only=True, required=False
+        child=JSONStringField(), write_only=True, required=False
     )
     steps_input = serializers.ListField(
         child=serializers.CharField(), write_only=True, required=False
@@ -103,35 +133,50 @@ class RecipeSerializer(serializers.ModelSerializer):
                     estimated_time=None  # Podría mejorarse en el futuro
                 )
 
-        # Crear Ingredientes (Parsing)
-        # Regex simple: "2 tazas de harina" -> amount=2, unit="tazas", name="harina"
-        # Regex: (cantidad) (unidad) (de?) (nombre)
-        pattern = re.compile(r"^(\d+(?:[.,]\d+)?)\s+([a-zA-Z]+)\s+(?:de\s+)?(.+)$", re.IGNORECASE)
-
-        for index, ing_text in enumerate(ingredients_data):
-            ing_text = ing_text.strip()
-            if not ing_text:
+        # Crear Ingredientes
+        # Ahora soporta tanto objetos estructurados como strings
+        for index, ing_data in enumerate(ingredients_data):
+            if not ing_data:
+                continue
+            
+            # Caso 1: Datos estructurados (diccionario con name, amount, unit)
+            if isinstance(ing_data, dict):
+                name = ing_data.get('name', '').strip()
+                amount = ing_data.get('amount', 1)
+                unit = ing_data.get('unit', '').strip()
+                
+                if not name:
+                    continue
+                    
+            # Caso 2: String (backward compatibility con regex parsing)
+            elif isinstance(ing_data, str):
+                ing_text = ing_data.strip()
+                if not ing_text:
+                    continue
+                
+                # Regex: "2 tazas de harina" -> amount=2, unit="tazas", name="harina"
+                pattern = re.compile(r"^(\d+(?:[.,]\d+)?)\s+([a-zA-ZáéíóúÁÉÍÓÚñÑ]+)\s+(?:de\s+)?(.+)$", re.IGNORECASE)
+                match = pattern.match(ing_text)
+                
+                if match:
+                    amount_str = match.group(1).replace(",", ".")
+                    amount = float(amount_str)
+                    unit = match.group(2)
+                    name = match.group(3).strip()
+                else:
+                    # Si no matchea el patrón, asumimos que es solo el nombre
+                    # El usuario deberá usar formato estructurado para especificar unidad
+                    amount = 1
+                    unit = "unidad"
+                    name = ing_text
+            else:
                 continue
 
-            match = pattern.match(ing_text)
-            if match:
-                amount_str = match.group(1).replace(",", ".")
-                amount = float(amount_str)
-                unit = match.group(2)
-                name = match.group(3).strip()
-            else:
-                # Fallback si no matchea el formato
-                amount = 1
-                unit = "unidad"
-                name = ing_text
-
             # Buscar o crear el ingrediente base
-            # Usamos iexact para evitar duplicados por mayúsculas/minúsculas
             ingredient, created = Ingredient.objects.get_or_create(
                 name__iexact=name,
                 defaults={"name": name}
             )
-            # Si ya existía pero con otro casing, usamos el objeto retornado
             if not created:
                 ingredient = Ingredient.objects.get(name__iexact=name)
             
@@ -166,25 +211,44 @@ class RecipeSerializer(serializers.ModelSerializer):
             # Eliminar ingredientes anteriores
             instance.recipe_ingredients.all().delete()
             
-            # Regex para parsing
-            pattern = re.compile(r"^(\d+(?:[.,]\d+)?)\s+([a-zA-Z]+)\s+(?:de\s+)?(.+)$", re.IGNORECASE)
-            
-            for index, ing_text in enumerate(ingredients_data):
-                ing_text = ing_text.strip()
-                if not ing_text:
+            # Procesar ingredientes (mismo lógica que en create)
+            for index, ing_data in enumerate(ingredients_data):
+                if not ing_data:
+                    continue
+                
+                # Caso 1: Datos estructurados (diccionario con name, amount, unit)
+                if isinstance(ing_data, dict):
+                    name = ing_data.get('name', '').strip()
+                    amount = ing_data.get('amount', 1)
+                    unit = ing_data.get('unit', '').strip()
+                    
+                    if not name:
+                        continue
+                        
+                # Caso 2: String (backward compatibility con regex parsing)
+                elif isinstance(ing_data, str):
+                    ing_text = ing_data.strip()
+                    if not ing_text:
+                        continue
+                    
+                    # Regex: "2 tazas de harina" -> amount=2, unit="tazas", name="harina"
+                    pattern = re.compile(r"^(\d+(?:[.,]\d+)?)\s+([a-zA-ZáéíóúÁÉÍÓÚñÑ]+)\s+(?:de\s+)?(.+)$", re.IGNORECASE)
+                    match = pattern.match(ing_text)
+                    
+                    if match:
+                        amount_str = match.group(1).replace(",", ".")
+                        amount = float(amount_str)
+                        unit = match.group(2)
+                        name = match.group(3).strip()
+                    else:
+                        # Si no matchea el patrón, asumimos que es solo el nombre
+                        amount = 1
+                        unit = "unidad"
+                        name = ing_text
+                else:
                     continue
 
-                match = pattern.match(ing_text)
-                if match:
-                    amount_str = match.group(1).replace(",", ".")
-                    amount = float(amount_str)
-                    unit = match.group(2)
-                    name = match.group(3).strip()
-                else:
-                    amount = 1
-                    unit = "unidad"
-                    name = ing_text
-
+                # Buscar o crear ingrediente
                 ingredient, created = Ingredient.objects.get_or_create(
                     name__iexact=name,
                     defaults={"name": name}

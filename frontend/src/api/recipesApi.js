@@ -58,10 +58,10 @@ export const createRecipe = async (recipeData, token) => {
       formData.append('image', recipeData.image);
     }
 
-    // Agregar ingredientes (lista de strings)
+    // Agregar ingredientes (lista de objetos con name, amount, unit)
     if (recipeData.ingredients && Array.isArray(recipeData.ingredients)) {
       recipeData.ingredients.forEach(ing => {
-        formData.append('ingredients_input', ing);
+        formData.append('ingredients_input', JSON.stringify(ing));
       });
     }
 
@@ -122,10 +122,10 @@ export const updateRecipe = async (id, recipeData, token) => {
       formData.append('image', recipeData.image);
     }
 
-    // Agregar ingredientes (lista de strings)
+    // Agregar ingredientes (lista de objetos con name, amount, unit)
     if (recipeData.ingredients && Array.isArray(recipeData.ingredients)) {
       recipeData.ingredients.forEach(ing => {
-        formData.append('ingredients_input', ing);
+        formData.append('ingredients_input', JSON.stringify(ing));
       });
     }
 

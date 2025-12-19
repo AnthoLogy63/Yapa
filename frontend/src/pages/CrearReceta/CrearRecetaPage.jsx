@@ -263,7 +263,14 @@ function CrearRecetaPage() {
         portions: parseInt(comensales),
         category: categoria || null,
         image: imageFile,
-        ingredients: ingredientes.map(i => i.text).filter(t => t.trim() !== ''),
+        // Enviar ingredientes como objetos estructurados con name, amount, unit
+        ingredients: ingredientes
+          .filter(i => i.text.trim() !== '')
+          .map(i => ({
+            name: i.text.trim(),
+            amount: parseFloat(i.cantidad) || 1,
+            unit: i.unidad.trim() || 'unidad'
+          })),
         steps: pasos.map(p => p.text).filter(t => t.trim() !== ''),
       };
 
