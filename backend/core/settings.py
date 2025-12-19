@@ -82,6 +82,15 @@ CORS_ALLOWED_ORIGINS = [
     "https://yapa-five.vercel.app",
 ]
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://yapa-five.vercel.app",
+    "https://yapa-git-main-anthonys-projects-86a774cf.vercel.app",
+    "https://yapa-mqf3xc2km-anthonys-projects-86a774cf.vercel.app",
+    "https://yapa-2fdq.onrender.com",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173"
+]
+
 CORS_ALLOW_ALL_ORIGINS = True
 
 WSGI_APPLICATION = 'core.wsgi.application'

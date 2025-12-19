@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://127.0.0.1:8000/api/favorites/';
+const API_URL = (import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000') + '/api/favorites/';
 
 export const getFavorites = async (token) => {
   try {
@@ -18,7 +18,7 @@ export const getFavorites = async (token) => {
 
 export const addToFavorites = async (recipeId, token) => {
   try {
-    const res = await axios.post(API_URL, 
+    const res = await axios.post(API_URL,
       { recipe_id: recipeId },
       {
         headers: {

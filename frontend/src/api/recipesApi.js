@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://127.0.0.1:8000/api/recipes/';
+const API_URL = (import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000') + '/api/recipes/';
 
 export const getRecomendacionesDelDia = async () => {
   try {
@@ -154,7 +154,7 @@ export const deleteRecipe = async (id, token) => {
   try {
     console.log('deleteRecipe - ID:', id);
     console.log('deleteRecipe - Token:', token);
-    
+
     if (!token) {
       throw new Error('Token no disponible. Por favor inicia sesión.');
     }
