@@ -2,11 +2,14 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { getAllRecipes } from "../../api/recipesApi";
 import Trie from "../../utils/Trie";
+import { useAuth } from "../../context/AuthContext";
+import { getPantryIngredients } from "../../api/pantryApi";
 
 function RecetasPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const searchTerm = searchParams.get("search");
+  const { token, isLogged } = useAuth();
 
   const [recipes, setRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -14,6 +17,7 @@ function RecetasPage() {
   const [ingCon, setIngCon] = useState("");
   const [listCon, setListCon] = useState([]);
 
+  // ... rest of state ...
   const [ingSin, setIngSin] = useState("");
   const [listSin, setListSin] = useState([]);
 
@@ -29,6 +33,32 @@ function RecetasPage() {
   const [suggestionCon, setSuggestionCon] = useState("");
   const [suggestionSin, setSuggestionSin] = useState("");
   const ingredientsTrieRef = useRef(new Trie());
+
+  // ... useEffects ...
+
+  // Handler for "Consultar" button
+  const handleConsultarRefri = async () => {
+    if (!isLogged || !token) {
+      alert("Debes iniciar sesión para consultar tu refri.");
+      return;
+    }
+
+    try {
+      const pantryItems = await getPantryIngredients(token);
+      if (pantryItems && Array.isArray(pantryItems)) {
+        const ingredientNames = pantryItems.map(item => item.ingredient.name);
+
+        if (ingredientNames.length > 0) {
+          const searchString = ingredientNames.join(" ");
+          navigate(`/recetas?search=${encodeURIComponent(searchString)}`);
+        }
+      }
+    } catch (error) {
+      console.error("Error consultando el refri:", error);
+    }
+  };
+
+  // ... existing handlers ...
 
   // Load Ingredients for Trie (Once)
   useEffect(() => {
@@ -577,6 +607,7 @@ function RecetasPage() {
             Consulta las recetas según lo que tienes en tu refri
           </span>
           <button
+            onClick={handleConsultarRefri}
             className="flex items-center justify-center px-4 py-2 text-white font-semibold rounded-lg shadow-md hover:brightness-110 cursor-pointer"
             style={{ backgroundColor: "#F99F3F" }}
           >
